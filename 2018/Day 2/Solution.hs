@@ -18,7 +18,8 @@ count elems list = map ($list) $map (\y ->
   length.filter (y ==)) elems
 
 checkSum :: Foldable t => t String -> Int
-checkSum = product.count [2,3].concatMap (intersect [2,3].count ['a'..'z'])
+checkSum = product.count [2,3].concatMap
+  (intersect [2,3].count ['a'..'z'])
 
 match :: Eq t => [[t]] -> [[t]]
 match (current:list) = do
