@@ -2,17 +2,15 @@
 module Solution where
 
 import qualified Data.IntMap.Lazy as Map
-
-import Control.Monad.State
-import Text.Parsec.String
 import Text.Parsec hiding (State)
-
+import Text.Parsec.String
+import Control.Monad.State
 import Data.List.Split
 import Control.Monad
 import Text.Printf
 import Data.List
 
-data Entry = Entry {stamp :: String, mark :: Int, event :: Action Int} deriving Show
+data Entry = Entry {stamp :: String, time :: Int, event :: Action Int} deriving Show
 data Action x = Wakes | Sleeps | Guard x deriving Show
 type Matrix = Map.IntMap (Map.IntMap Int)
 type Active = (Map.Key, Int, Matrix)
@@ -21,7 +19,7 @@ main :: IO()
 main = do
   list <- sortOn stamp<$>input
   let result = (`evalState` start) $ trackTimes list
-  print "fuck" where start = (0, 0, Map.empty)
+  print result where start = (0, 0, Map.empty)
 
 input :: IO [Entry]
 input = readFile "input.txt" >>= \y->
@@ -31,15 +29,17 @@ input = readFile "input.txt" >>= \y->
 trackTimes :: [Entry] -> State Active Matrix
 trackTimes [] = get >>= yield
   where yield (_, _, r) = pure r
-trackTimes (log:rest) = do
+trackTimes (action:future) = do
   (key, start, current) <- get
   let active = Map.findWithDefault Map.empty key current
-  case event log of
+  let new_state = update active [start..time action-1]
+  case event action of
     Guard new -> put (new, start, current)
-    Sleeps -> put (key, mark log, current)
+    Sleeps -> put (key, time action, current)
     Wakes -> put (key, start, Map.insert key
-      (Map.insertWith (+) key 1 active) current)
-  trackTimes rest
+      new_state current)
+  trackTimes future where
+    update = foldl (\dict x -> Map.insertWith (+) x 1 dict)
 
 parseEvent :: Parser Entry
 parseEvent = do
