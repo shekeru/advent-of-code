@@ -1,4 +1,3 @@
-import itertools
 with open('input.txt') as f:
     xs = [*map(int, f.read().splitlines())]
 def cycle(xs):
