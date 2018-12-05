@@ -7,7 +7,6 @@ import Text.Parsec.String
 import Control.Monad.State
 import Data.List.Split
 import Data.Function
-import Control.Monad
 import Text.Printf
 import Data.List
 
@@ -24,7 +23,7 @@ main = (sortOn stamp<$>input) >>= \y ->
     ] where start = (0, 0, Map.empty)
 
 input :: IO [Entry]
-input = readFile "input.txt" >>= \y->
+input = readFile "input.txt" >>= \y ->
   pure$ case parse (many parseEvent) "" y of
     Left err -> []; Right xs -> xs
 
