@@ -20,11 +20,5 @@ def solve(matrix, func):
     ); beta = max(matrix[alpha], key =
         matrix[alpha].get
     ); return alpha * beta
-def dict_seq(start):
-    result = collections.defaultdict(dict)
-    for k in start:
-        for m in start[k]:
-            result[m][k] = start[k][m]
-    return result
 print('part 1:', solve(guards, sum))
-print('part 2:', solve(dict_seq(guards), max))
+print('part 2:', solve(guards, max))
