@@ -14,7 +14,7 @@ input :: IO [String]
 input = lines<$>readFile "input.txt"
 
 count :: Eq a => [a] -> [a] -> [Int]
-count elems list = map (($list).count') elems
+count elems list = map count' elems <*> [list]
   where count' y = length.filter (y ==)
 
 checkSum :: Foldable t => t String -> Int
