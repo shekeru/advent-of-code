@@ -1,5 +1,5 @@
 {-# LANGUAGE PartialTypeSignatures #-}
-module Solution where
+module Main where
 
 import Data.Function
 import Text.Printf

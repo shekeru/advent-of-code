@@ -1,5 +1,5 @@
 {-#LANGUAGE PartialTypeSignatures#-}
-module Solution where
+module Main where
 
 import qualified Data.IntMap.Lazy as Map
 import Text.Parsec hiding (State)

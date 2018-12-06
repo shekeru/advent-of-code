@@ -1,4 +1,4 @@
-module Solution where
+module Main where
 
 import Data.Set (Set, singleton, insert, member)
 import Control.Monad.State
