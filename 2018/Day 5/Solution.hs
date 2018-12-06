@@ -21,4 +21,4 @@ reduction x zs@(y:ys) = if reacts x y then ys else x:zs
 
 swaps :: String -> [String]
 swaps xs = map strip ['a'..'z'] <*> [xs] where
-  strip x = filter $not.flip elem [x, toUpper x]
+  strip x = filter (not.flip elem [x, toUpper x])
