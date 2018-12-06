@@ -1,48 +1,60 @@
 {-#LANGUAGE PartialTypeSignatures#-}
 module Solution where
 
+import qualified Data.Map.Lazy as Map
+import Control.Monad.State
 import Data.List.Split
 import Control.Monad
 import Data.Function
 import Text.Printf
 import Data.List
 
+type Counter = Map.Map Coords Int
 type Coords = (Int, Int)
 
+unpair (a,b) = [a,b]
+pair [a,b] = (a,b)
+
 main :: IO()
-main = mapM_ (input >>=) [
-   printf "part 1: %d\n".enclosed,
-   printf "part 2: %d\n".adjacent]
+main = do
+  points <- input
+  let start = (points, Map.empty, 0)
+  let ranges = pair <$> (mapM range.unpair.unzip) points
+  let result = distance ranges `evalState` start
+  printf "part 1: %d\n" $fst result
+  printf "part 2: %d\n" $snd result
 
 input :: IO [Coords]
 input = map (pair.parse).lines<$>readFile "input.txt"
-  where pair [a,b] = (a,b); parse = map read.splitOn ","
+  where parse = map read.splitOn ","
 
-enclosed :: [Coords] -> Int
-enclosed points = maximum.assemble'$ do
-  ys <- range snd points; xs <- range fst points
-  let table = distance' (xs, ys) <$> points
+distance :: [Coords] -> State ([Coords], Counter, Int) (Int, Int)
+distance [] = gets yield where
+  yield (_, m, t) = (maximum $Map.elems m, t)
+distance (p:next) = do
+  (points, tracking, total) <- get
+  put (points, case nearest points p of
+    Just match -> Map.insertWith (+) match 1 tracking
+    Nothing -> tracking, if closeby points p then
+      total + 1 else total); distance next
+
+nearest :: [Coords] -> Coords -> Maybe Coords
+nearest points p = do
+  let table = m_dist' p <$> points
   let (val, key) = minimumBy (on compare fst) table
-  guard (count (map fst table) val == 1)
-  return key
+  if count (map fst table) val == 1 then Just key else Nothing
 
-adjacent :: [Coords] -> Int
-adjacent points = length [1 |
-  ys <- range snd points, xs <- range fst points,
-  (sum $distance (xs, ys) <$> points) < 10000]
+closeby :: [Coords] -> Coords -> Bool
+closeby points p = 10000 > (sum $m_dist p <$> points)
 
-distance :: Coords -> Coords -> Int
-distance (x1,y1) (x,y) = on (+) abs (x1-x) (y1-y)
+m_dist :: Coords -> Coords -> Int
+m_dist (x1,y1) (x,y) = on (+) abs (x1-x) (y1-y)
 
-distance' :: Coords -> Coords -> (Int, Coords)
-distance' a b = (distance a b, b)
+m_dist' :: Coords -> Coords -> (Int, Coords)
+m_dist' a b = (m_dist a b, b)
 
-assemble' :: Eq a => [a] -> [Int]
-assemble' xs = count xs <$> nub xs
-
-range :: (Coords -> Int) -> [Coords] -> [Int]
-range f xs = [minimum ys..maximum ys-1]
-  where ys = map f xs
+range :: (Foldable t, Ord a, Num a, Enum a) => t a -> [a]
+range ys = [minimum ys..maximum ys-1]
 
 count :: Eq a => [a] -> a -> Int
 count xs x = length $filter (== x) xs
