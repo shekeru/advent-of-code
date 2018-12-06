@@ -1,4 +1,3 @@
-{-#LANGUAGE PartialTypeSignatures#-}
 module Solution where
 
 import Data.Function
@@ -15,10 +14,16 @@ input :: IO String
 input = init<$>readFile "input.txt"
 
 reduction :: Char -> String -> String
-reduction x [] = [x]
-reduction x zs@(y:ys) = if reacts x y then ys else x:zs
+reduction x ys = if reacts x $head ys then ys else x:ys
   where reacts x y = x /= y && on (==) toLower x y
 
 swaps :: String -> [String]
 swaps xs = map strip ['a'..'z'] <*> [xs] where
-  strip x = filter (not.flip elem [x, toUpper x])
+  strip x = filter (`notElem` [x, toUpper x])
+-- Yay, Learning
+swaps' :: String -> [String]
+swaps' str = strip' str <$> ['a'..'z']
+strip' :: String -> Char -> String
+strip' str x = filter ((x /=).toLower) str
+swaps'' :: String -> [String]
+swaps'' = flip (<$>) ['a'..'z'] .strip'
