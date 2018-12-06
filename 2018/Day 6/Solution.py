@@ -1,28 +1,20 @@
-import re, collections
+import re, collections, itertools
 with open('input.txt') as f:
     parse = lambda x: tuple(map(int, re.findall(r'\d+', x)))
     points = [*map(parse, f.read().splitlines())]
+ys = [min(y for _,y in points), max(y for _,y in points)]
+xs = [min(x for x,_ in points), max(x for x,_ in points)]
+def part_2(*p1):
+    return 10000 > sum(m_dist(*p1, *p2) for p2 in points)
+args = [(x,y) for y in range(*ys) for x in range(*xs)]
+def part_1(*p1):
+    table = {p2: m_dist(*p1, *p2) for p2 in points}
+    point = min(table, key = table.get)
+    if [*table.values()].count(table[point]) < 2:
+        result[point] += 1
 result = collections.defaultdict(int)
-a = min(x for x,_ in points)
-b = min(y for _,y in points)
-c = max(x for x,_ in points)
-d = max(y for _,y in points)
-corners = [(a,b),(c,b),(a,d),(c,d)]
-fuck2 = int()
-def m_dist(x1, y1, x2, y2):
-    return abs(x1-x2) + abs(y1-y2)
-def maybe(x, y):
-    ll = [(m_dist(x,y,*p), p) for p in points+corners]
-    val, p = min(ll, key = lambda x: x[0])
-    if [v[0] for v in ll].count(val) == 1 and p not in corners:
-        result[p] += 1
-def eat_shit(x, y):
-    global fuck2
-    ll = sum([m_dist(x,y,*p) for p in points])
-    if ll < 10000:
-        fuck2 += 1
-for y in range(b,d):
-    for x in range(a,c):
-        maybe(x, y)
-        eat_shit(x, y)
-print(max(result.values()), fuck2)
+def m_dist(x, y, x1, y1):
+    return abs(x1 - x) + abs(y1 - y)
+[part_1(*p1) for p1 in args]; print('part 1:',
+    max(result.values())); print('part 2:',
+sum(1 for p1 in args if part_2(*p1)))
