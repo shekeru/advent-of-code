@@ -3,11 +3,8 @@ module Solution where
 
 import qualified Data.Map.Lazy as Map
 import qualified Data.Set as Set
-import Control.Monad.State
 import Text.RE.TDFA.String
-import Data.Function
 import Text.Printf
-import Data.List
 
 type Fabric = Map.Map Int Claim
 type Claim = Map.Map Coords Int
@@ -34,10 +31,10 @@ expand [i, x, y, w, h] = (i, Map.fromSet (const 1) lazy_map) where
 overlap :: Fabric -> Claim
 overlap = Map.unionsWith (+). Map.elems
 
-reduce :: Claim -> Int
-reduce = foldr qualify 0 where
-  qualify x y = if x>1 then y+1 else y
-
 isolate :: Claim -> Fabric -> Int
 isolate master = head. Map.keys. Map.filter match where
   match dict = (== ) dict $Map.intersection master dict
+
+reduce :: Claim -> Int
+reduce = foldr qualify 0 where
+  qualify x y = if x > 1 then y + 1 else y
