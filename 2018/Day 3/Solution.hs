@@ -19,9 +19,7 @@ main = do
 
 input :: IO [[Int]]
 input = map regex.lines <$> readFile "input.txt"
-
-regex :: Read b => String -> [b]
-regex = map read.matches.(*=~ [re|@{%int}|])
+  where regex = map read.matches.(*=~ [re|@{%int}|])
 
 expand :: [Int] -> (Int, Claim)
 expand [i, x, y, w, h] = (i, Map.fromSet (const 1) lazy_map) where
