@@ -1,4 +1,4 @@
-module Solution where
+module Main where
 
 import Control.Monad
 import Text.Printf

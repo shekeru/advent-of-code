@@ -1,10 +1,9 @@
 {-#LANGUAGE PartialTypeSignatures#-}
-module Solution where
+module Main where
 
 import qualified Data.Map.Lazy as Map
 import Control.Monad.State
 import Data.List.Split
-import Control.Monad
 import Data.Function
 import Text.Printf
 import Data.List

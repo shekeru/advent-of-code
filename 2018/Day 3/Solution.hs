@@ -1,5 +1,5 @@
 {-#LANGUAGE PartialTypeSignatures, QuasiQuotes#-}
-module Solution where
+module Main where
 
 import qualified Data.Map.Lazy as Map
 import qualified Data.Set as Set
