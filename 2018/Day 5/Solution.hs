@@ -1,4 +1,4 @@
-{-#LANGUAGE PartialTypeSignatures#-}
+{-# LANGUAGE PartialTypeSignatures #-}
 module Solution where
 
 import Data.Function
@@ -15,8 +15,9 @@ input :: IO String
 input = init<$>readFile "input.txt"
 
 reduction :: Char -> String -> String
-reduction x ys = if reacts x $head ys then ys else x:ys
-  where reacts x y = x /= y && on (==) toLower x y
+reduction x [] = [x]; reduction x zs@(y:ys) =
+  if reacts x y then ys else x:zs where
+    reacts x y = x /= y && on (==) toLower x y
 
 swaps :: String -> [String]
 swaps xs = map strip ['a'..'z'] <*> [xs] where
