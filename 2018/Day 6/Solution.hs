@@ -16,12 +16,20 @@ input :: IO [Coords]
 input = map (pair.parse).lines<$>readFile "input.txt"
   where pair [a,b] = (a,b); parse = map read.splitOn ","
 
-enclosed points = maximum$ do
+enclosed points = maximum.assemble'$ do
   ys <- range snd points; xs <- range fst points
   let table = distance' (xs, ys) <$> points
   let opt = minimumBy (on compare fst) table
   guard (length (filter (on (==) fst opt) table) == 1)
-  return $ fst opt
+  return $ snd opt
+
+assemble :: Eq a => [a] -> [(a, Int)]
+assemble xs = count xs <$> xs where
+  count xs x = (x, length $filter (== x) xs)
+
+assemble' :: Eq a => [a] -> [Int]
+assemble' xs = count xs <$> xs where
+  count xs x = length $filter (== x) xs
 
 test :: [Coords]
 test = [
