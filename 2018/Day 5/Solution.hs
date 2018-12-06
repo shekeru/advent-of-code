@@ -1,3 +1,4 @@
+{-#LANGUAGE PartialTypeSignatures#-}
 module Solution where
 
 import Data.Function

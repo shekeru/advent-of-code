@@ -1,26 +1,49 @@
+{-#LANGUAGE PartialTypeSignatures#-}
 module Solution where
 
+import Data.List.Split
+import Control.Monad
 import Data.Function
 import Text.Printf
-import Data.Char
+import Data.List
 
-main :: IO()
+type Coords = (Int, Int)
+
+--main :: IO()
 main = print ""
 
-input :: IO String
-input = init<$>readFile "input.txt"
+input :: IO [Coords]
+input = map (pair.parse).lines<$>readFile "input.txt"
+  where pair [a,b] = (a,b); parse = map read.splitOn ","
 
-reduction :: Char -> String -> String
-reduction x ys = if reacts x $head ys then ys else x:ys
-  where reacts x y = x /= y && on (==) toLower x y
+enclosed points = maximum$ do
+  ys <- range snd points; xs <- range fst points
+  let table = distance' (xs, ys) <$> points
+  let opt = minimumBy (on compare fst) table
+  guard (length (filter (on (==) fst opt) table) == 1)
+  return $ fst opt
 
-swaps :: String -> [String]
-swaps xs = map strip ['a'..'z'] <*> [xs] where
-  strip x = filter (`notElem` [x, toUpper x])
--- Yay, Learning
-swaps' :: String -> [String]
-swaps' str = strip' str <$> ['a'..'z']
-strip' :: String -> Char -> String
-strip' str x = filter ((x /=).toLower) str
-swaps'' :: String -> [String]
-swaps'' = flip (<$>) ['a'..'z'] .strip'
+test :: [Coords]
+test = [
+  (1, 1),
+  (1, 6),
+  (8, 3),
+  (3, 4),
+  (5, 5),
+  (8, 9)]
+
+
+adjacent :: [Coords] -> Int
+adjacent points = length [1 |
+  ys <- range snd points, xs <- range fst points,
+  (sum $distance (xs, ys) <$> points) < 10000]
+
+distance :: Coords -> Coords -> Int
+distance (x1,y1) (x,y) = on (+) abs (x1-x) (y1-y)
+
+distance' :: Coords -> Coords -> (Int, Coords)
+distance' (x1,y1) l@(x,y) = (on (+) abs (x1-x) (y1-y), l)
+
+range :: (Coords -> Int) -> [Coords] -> [Int]
+range f xs = [minimum ys..maximum ys-1]
+  where ys = map f xs
