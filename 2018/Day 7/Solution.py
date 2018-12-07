@@ -23,5 +23,5 @@ def forwards(routes, workers = 2, offset = 0):
                 isinstance(offset, int) else 0); del table[nexts[i]]
         if not len(table)+len(queue):
             return (seconds, accum)
-print('part 1:', forwards(routes, workers = 1, offset = None))
-print('part 2:', forwards(routes, workers = 5, offset = 60))
+print('part 1:', forwards(routes, workers = 1, offset = None)[1])
+print('part 2:', forwards(routes, workers = 5, offset = 60)[0])
