@@ -18,16 +18,10 @@ data Queue = Queue {
   elapsed :: Int, workers :: [(Char, Int)]
 } deriving Show
 
-part_1 = do
+main = do
   table <- construct<$>input
   printf "part 1: %s\n" $snd (evaluate 1 Nothing table)
   printf "part 2: %d\n" $fst (evaluate 5 (Just 60) table)
-
-{-
-  get nextKeys
-  pushinto
-  decrement
--}
 
 evaluate :: Int -> Maybe Int -> Table -> Solution
 evaluate workers delay table = forwards `evalState` ("",
@@ -70,8 +64,6 @@ nextKeys table = fst$ Map.mapAccumRWithKey func "" table
 construct :: [Pair] -> Table
 construct = foldr part (Map.fromSet (const Set.empty) $Set.fromAscList ['A'..'Z']) where
   part [req, key] = Map.insertWith Set.union key (Set.singleton req)
-
-main = print ""
 
 input :: IO [Pair]
 input = map (tail.parse).lines<$>readFile "input.txt"
