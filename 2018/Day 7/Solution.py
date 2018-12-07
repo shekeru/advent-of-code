@@ -1,4 +1,4 @@
-import string, re
+import re, string, itertools
 with open('input.txt') as f:
     parse = lambda x: tuple(re.findall(r'[A-Z]', x)[1:])
     routes = [*map(parse, f.read().splitlines())]
@@ -10,7 +10,7 @@ def forwards(routes, workers = 2, offset = 0):
     accum, queue, table = "", dict(), double_map(routes)
     for (req, key) in routes:
         table[key].add(req)
-    for seconds in range(1000**1000):
+    for seconds in itertools.count():
         queue = {k: v-1 for k,v in queue.items()}
         for worker in queue.copy():
             if queue[worker] < 1:
