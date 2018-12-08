@@ -1,10 +1,10 @@
 with open('input.txt', 'r') as f:
     xs = [*map(int, f.read().split())]
 def mk_tree(childs, metas, *xs):
-    xs, ts = mk_node(childs, xs, [])
+    xs, ts = mk_nodes(childs, xs, [])
     node = (ts, xs[:metas])
     return (xs[metas:], node)
-def mk_node(childs, xs, ts):
+def mk_nodes(childs, xs, ts):
     for _ in range(childs):
         xs, node = mk_tree(*xs)
         ts.append(node)
