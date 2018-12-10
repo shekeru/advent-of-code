@@ -1,6 +1,6 @@
 module Main where
 
-import qualified Data.IntMap.Lazy as Map
+import qualified Data.IntMap.Strict as Map
 
 type GameState = (Int, Map.IntMap Int, Circular)
 data Circular = Circular [Int] Int [Int]
