@@ -17,5 +17,5 @@ pts = defaultdict(int)
 for x, y in double_range(1, 301):
     pts[(x,y)] += evaluate(8141, x, y) - pts[(x-1, y-1)]
     pts[(x,y)] += pts[(x,y-1)] + pts[(x-1, y)]
-print('Silver: %s with %d' % find_max(3))
+print('Silver: %s with %d' % find_max(1))
 print('Gold: %s with %d' % find_max(*range(1, 301)))
