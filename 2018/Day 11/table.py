@@ -1,21 +1,21 @@
-import math, itertools
+from collections import defaultdict
+from itertools import product
 def double_range(*xvs, t = 2):
-    return [*itertools.product(range(*xvs), repeat = t)]
-def reduction(x,y,i):
-    return pts[i-1][(x,y)] + sum(pts[1][(x+u,y+v)] for
-        (u,v) in {*double_range(i)} if (i-1) in (u,v))
-def propagate_sums():
-    for i in range(2, 5 or math.ceil(301**0.5)):
-        pts[i] = {pair: reduction(*pair, i) for
-            pair in double_range(1, 301 - i)}
+    return [*product(range(*xvs), repeat = t)]
 def evaluate(grid,x,y):
     rID = x + 10; pLV = grid + rID * y
     return int(f"{pLV*rID:03d}"[-3]) - 5
-pts = {1: {pair: evaluate(8141, *pair) for pair in double_range(1, 301)}}
-_, sums = propagate_sums(), {j: max(pts[j].items(),
-    key = lambda x: x[1]) for j in pts}; print(
-'Silver: %s with %d' % sums[3]), print('Gold: %s with %d' %
-    max(sums.items(), key = lambda x : x[1]))
-sums[3]
-
-# todo, fix formating
+def adjust_cmp(value, u, v):
+    return -value if u != v else value
+def area_sum(x,y,i):
+    return sum(adjust_cmp(pts[(x+u,y+v)], u, v)
+        for (u,v) in product([0, i], repeat = 2))
+def find_max(*boxes):
+    return max({(x+1, y+1, j): area_sum(x, y, j) for j in boxes for
+        (x,y) in double_range(301 - j)}.items(), key = lambda xs: xs[1])
+pts = defaultdict(int)
+for x, y in double_range(1, 301):
+    pts[(x,y)] += evaluate(8141, x, y) - pts[(x-1, y-1)]
+    pts[(x,y)] += pts[(x,y-1)] + pts[(x-1, y)]
+print('Silver: %s with %d' % find_max(3))
+print('Gold: %s with %d' % find_max(*range(1, 301)))
