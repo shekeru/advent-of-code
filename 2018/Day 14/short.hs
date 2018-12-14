@@ -15,6 +15,10 @@ sets = iterate next ([7,3], 0, 1)
 
 next :: State -> State
 next (xs, u, v) = (xs', f' u, f' v) where
-  f' j = mod (length xs' - j - 1 + length ys - xs!!j) $length xs'
+  f' j = g' $mod 1 + xs!!j
+  g' j = if j < 0 then length xs' + j else j
+    -- First Shift right by ys added
+    -- Then shift left by value + 1
+    -- if negative, then we have to loop
   xs' = foldl (flip (:)) xs$ if null ys then [0] else ys
   ys = digits 10 (xs!!u + xs!!v)
