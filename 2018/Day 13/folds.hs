@@ -20,7 +20,7 @@ input = do
 main :: IO ()
 main = do
   (tracks, carts) <- input; let states = iterate (runSystem tracks) carts; crashed f = SM.filter (\(d,t) -> d `f` Crash)
-  let [(y1,x1), (y2,x2)] = [\(f, g) -> (fst.head.head.dropWhile g) $map (SM.assocs.crashed f) states] <*> [((==), null), ((/=),(<) 1.length)]
+  let [(y1,x1), (y2,x2)] = [\f -> f (==) null, \f -> f (/=) ((<) 1.length)] <*> [\f g -> (fst.head.head.dropWhile g) $map (SM.assocs.crashed f) states]
   printf "Silver: First impact at %d,%d\n" x1 y1; printf "Gold: Last cart at %d,%d\n" x2 y2
 
 runSystem :: Tracks -> Carts -> Carts
