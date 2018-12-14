@@ -2,8 +2,7 @@ class WriteChecks(dict):
     def __setitem__(s, key, value):
         if key in s:
             super().__setitem__(key, (0,0,0))
-            #if 'f' not in dir(s): s.f =
-            print("Silver:",
+            if 'f' not in dir(s): s.f = print("Silver:",
                 "First impact at ({1},{0})".format(*key))
         else: super().__setitem__(key, value)
 with open('input.txt') as f:
@@ -14,7 +13,6 @@ for y in range(len(tracks)):
         if tracks[y][x] in conv.keys():
             carts[y,x] = (*conv[tracks[y][x]], 0)
             tracks[y][x] = '-' if tracks[y][x] in ['>','<'] else '|'
-print(len(carts))
 def run_system():
     for y,x in sorted(carts):
         if 1 is len([*filter(sum, carts.values())]):
