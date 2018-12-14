@@ -1,21 +1,33 @@
+{-# LANGUAGE PartialTypeSignatures, ViewPatterns #-}
 module Main where
 
-import Data.Digits
+import qualified Data.Sequence as S
+import Data.Char (digitToInt)
+import Data.Digits (digits)
 
-type State = ([Int], Int, Int)
+type State = (Series, Int, Int)
+type Series = S.Seq Int
 
+main :: IO ()
 main = do
-  let const = 30121
-  let (numbers, u, v) = sets!!(const+10)
-  print$ take 20 $drop (const-10) $reverse numbers
-  --mapM_ print (reverse numbers)
+  let subseq = map digitToInt input; input = "030121"
+  let (_, nums) = (head.filter fst.map (match subseq 7)) sets
+  putStrLn $ "Silver: " ++ concatMap show (S.take 10 $ S.drop
+    (read input) nums); putStrLn $ "Gold: " ++ (show.length) nums
 
 sets :: [State]
-sets = iterate next ([7,3], 0, 1)
+sets = iterate next (S.fromList [3,7], 1, 0)
 
 next :: State -> State
 next (xs, u, v) = (xs', f' u, f' v) where
-  xs' = foldl (flip (:)) xs$ if null ys then [0] else ys
+  xs' = foldl (S.|>) xs (if null ys then [0] else ys)
   f' j = mod (j + 1 + ret j) $length xs'
-  ret i = xs !! (length xs - 1 - i)
   ys = digits 10 (ret u + ret v)
+  ret = S.index xs
+
+match :: [Int] -> Int -> State -> (Bool, Series)
+match str i (S.viewr -> S.EmptyR, u, v) = (False, S.empty)
+match str i (S.viewr -> xs S.:> x, u, v)
+  | last (-1:str) == x = match (init str) (i-1) (xs, u, v)
+  |  i > 6 = match str (i-1) (xs, u, v)
+  | otherwise = (null str, xs S.|> x)
