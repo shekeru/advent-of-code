@@ -13,9 +13,9 @@ type Plant = Char
 
 main :: IO ()
 main = do
-  system <- states<$>input
-  printf "Silver: %d\n" (sum.SM.keys.active $system!!20)
-  printf "Gold: %d\n" (sum.SM.keys.active $system!!20)
+  system <- map solve.states<$>input
+  printf "Silver: %d\n" $system !! 20
+  printf "Gold: %d\n" $stabs system 50000000000
 
 input :: IO (Trans, State)
 input = parse.lines<$>readFile "input.txt"
@@ -24,6 +24,10 @@ parse :: [String] -> (Trans, State)
 parse (x:_:xs) = (LM.fromList ejects, SM.fromAscList state) where
   state = (zip [0..].last.splitOn ": ") x; swap [ys, y:_] = (ys, y)
   ejects = map (swap.splitOn " => ") xs
+
+stabs :: [Int] -> Int -> Int
+stabs (a:b:c:xs) i = if (b - a) == (c - b)
+  then a + (c - b) * i else stabs xs (i - 3)
 
 states :: (Trans, State) -> [State]
 states (ts, st) = iterate (runSystem ts) st
@@ -52,5 +56,5 @@ collect xs = SM.restrictKeys xs $ SI.fromList [u..v] where
 active :: State -> State
 active = SM.filter ('#' ==)
 
-display :: State -> [Plant]
-display = SM.elems
+solve :: State -> Int
+solve = sum.SM.keys.active
