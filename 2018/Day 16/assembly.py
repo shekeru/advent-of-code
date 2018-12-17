@@ -21,12 +21,12 @@ state, operators = [0]*4, [
     (operator.or_, True, False), # bori
     (lambda a,b: a, True, None), # setr
     (lambda a,b: a, False, None), # seti
-    (lambda a,b: int(a>b), False, True), # gtir
-    (lambda a,b: int(a>b), True, False), # gtri
-    (lambda a,b: int(a>b), True, True), # gtrr
-    (lambda a,b: int(a==b), False, True), # eqir
-    (lambda a,b: int(a==b), True, False), # eqri
-    (lambda a,b: int(a==b), True, True), # eqrr
+    (operator.gt, False, True), # gtir
+    (operator.gt, True, False), # gtri
+    (operator.gt, True, True), # gtrr
+    (operator.eq, False, True), # eqir
+    (operator.eq, True, False), # eqri
+    (operator.eq, True, True), # eqrr
 ]; matches, mapped = [(sets[1][0],
     [op for op in operators if evaluate(op,*sets)]
 ) for sets in trans], collections.defaultdict(list)
