@@ -1,10 +1,8 @@
 from itertools import groupby
 import re, operator, collections
 with open('2018/Day 16/input.txt') as f:
-    fuckfest = f.read()
-parse = lambda x: list(map(int, re.findall(r'\d+', x)))
-trans, system = map(lambda x: x.splitlines(),
-    fuckfest.split("\n"*4))
+    trans, system = map(lambda x: x.splitlines(), f.read().split("\n"*4))
+    parse = lambda x: list(map(int, re.findall(r'\d+', x)))
 trans, system = [[*map(parse, t)] for v,t in groupby(trans,
     lambda x: x == '') if not v], [*map(parse, system)]
 def evaluate(op, xs, t, ys):
