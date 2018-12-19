@@ -1,7 +1,7 @@
 {-# LANGUAGE PartialTypeSignatures, TemplateHaskell #-}
 module Main where
 
-import Data.List (intersect, (\\), mapAccumL, sortOn)
+import Data.List (intersect, (\\), mapAccumL, sortOn, nub)
 import qualified Data.Map.Strict as SM
 import Control.Monad
 import Control.Lens
@@ -10,7 +10,7 @@ import Data.Maybe
 import Debug.Trace
 
 data Faction = Goblin | Elf deriving (Show, Eq)
-type Overlay = SM.Map Coords Int
+type Overlay = SM.Map Coords [Coords]
 type Units = SM.Map Coords Mob
 type Coords = (Int, Int)
 type Space = [[Bool]]
@@ -57,15 +57,22 @@ select units (y, x) = listToMaybe $ sortOn f [crds |
 slots :: Space -> Units -> Mob -> [Coords]
 slots space units mob = concatMap (adj space units) (SM.keys $ enemy units mob)
 
-moves :: Space -> Units -> Int -> Overlay -> Coords -> Overlay
-moves space units i sys crds = foldl (moves space units $ i+1) sys' next' where
-   next' = adj space units crds \\ SM.keys sys; sys' = SM.insert crds i sys
+moves :: Space -> Units -> [Coords] -> Overlay -> Coords -> Overlay
+moves space units xs sys crds = foldl (moves space units $ crds:xs) sys' next' where
+   next' = adj space units crds \\ SM.keys sys; sys' = SM.insert crds xs sys
 
-path :: Overlay -> Coords -> [Coords]
-path sys (y,x) | null sys' = []
-  | otherwise  = (y,x) : path sys' pts' where
-    pts' = fst $ SM.findMin $ SM.filter (== val - 1) sys'
-    sys' = SM.filter (< val) sys; val = sys SM.! (y, x)
+resolve sys k xs = resolve' xs [k] where
+  resolve' (x:xs) (y:ys) = if diff x y && (length (sys SM.! x) < length (sys SM.! y))
+    then resolve' xs (x:y:ys) else resolve' xs (y:ys)
+  resolve' [] ys = ys
+
+diff (a,b) (c,d) = length (nub [a,b,c,d]) < 4 && (abs $ a-c) + (abs $ b-d) == 1
+
+-- path :: Overlay -> Coords -> [Coords]
+-- path sys (y,x) | null sys' = []
+--   | otherwise  = (y,x) : path sys' pts' where
+--     pts' = fst $ SM.findMin $ SM.filter (== val - 1) sys'
+--     sys' = SM.filter (< val) sys; val = sys SM.! (y, x)
 
 damage :: Mob -> Maybe Mob -> Maybe Mob
 damage agg (Just def) = if _hp def' > 0 then Just def'
@@ -74,15 +81,15 @@ damage agg (Just def) = if _hp def' > 0 then Just def'
 turn :: Space -> Units -> Coords -> Mob -> Units
 turn space units key _ = do
   let (mob, units') = (units SM.! key, SM.delete key units)
-  let targets = slots space units' mob
-  let options = moves space units' 0 SM.empty key
-  let selected = targets `intersect` SM.keys options
-  if null selected then units else do
-    let move = last $ traceShowId (path options (head selected))
-    let units'' = SM.insert move mob units'
-    case select (enemy units mob) move of
-      Just attack -> SM.alter (damage mob) attack units''
-      Nothing -> units''
+  let (targets, opts') = (slots space units' mob, moves space units' [] SM.empty key)
+  let opts = SM.mapWithKey (resolve opts') opts'
+  let selected = targets `intersect` SM.keys opts
+  let nearest = traceShow (opts', key) $ (++) (sortOn (length.(opts SM.!)) selected) [key]
+  let move = (++) (opts SM.! head nearest) [key] !! 1
+  let units'' = SM.insert move mob units'
+  case select (enemy units mob) move of
+    Just attack -> SM.alter (damage mob) attack units''
+    Nothing -> units''
 
 system :: (Space, Units) -> [Units]
 system (space, units) = iterate f units where
