@@ -1,7 +1,8 @@
 {-# LANGUAGE PartialTypeSignatures, TemplateHaskell #-}
 module Main where
 
-import Data.List (intersect, (\\), mapAccumL, sortOn, nub)
+import Data.List
+import Data.Function
 import qualified Data.Map.Strict as SM
 import Control.Monad
 import Control.Lens
@@ -61,18 +62,31 @@ moves :: Space -> Units -> [Coords] -> Overlay -> Coords -> Overlay
 moves space units xs sys crds = foldl (moves space units $ crds:xs) sys' next' where
    next' = adj space units crds \\ SM.keys sys; sys' = SM.insert crds xs sys
 
+build :: Space -> Units -> Overlay -> Coords -> Overlay
+build space units sys crds = case prev of
+  Just prev -> SM.insert crds (crds:prev) sys
+  Nothing -> sys; where
+    eval next = (build space units sys next) SM.!
+      next
+    prev = listToMaybe $ [eval next | next
+      <- (reverse $ adj space units crds),
+        next `SM.notMember` sys]
+
+route :: Space -> Units -> Coords -> Overlay -> Coords -> Overlay
+route space units src sys dest = if dest == src
+  then SM.insert dest [src] sys else sys' where
+  sys' = snd $ minimumBy (on compare safely) [route' crds
+   | crds <- next4, crds `SM.notMember` sys]
+  route' crds = (crds, route space units crds sys dest)
+  safely (k, xvs) = length $ xvs SM.! k
+  next4 = adj space units src :: [Coords]
+
 resolve sys k xs = resolve' xs [k] where
   resolve' (x:xs) (y:ys) = if diff x y && (length (sys SM.! x) < length (sys SM.! y))
     then resolve' xs (x:y:ys) else resolve' xs (y:ys)
   resolve' [] ys = ys
 
 diff (a,b) (c,d) = length (nub [a,b,c,d]) < 4 && (abs $ a-c) + (abs $ b-d) == 1
-
--- path :: Overlay -> Coords -> [Coords]
--- path sys (y,x) | null sys' = []
---   | otherwise  = (y,x) : path sys' pts' where
---     pts' = fst $ SM.findMin $ SM.filter (== val - 1) sys'
---     sys' = SM.filter (< val) sys; val = sys SM.! (y, x)
 
 damage :: Mob -> Maybe Mob -> Maybe Mob
 damage agg (Just def) = if _hp def' > 0 then Just def'
@@ -81,10 +95,11 @@ damage agg (Just def) = if _hp def' > 0 then Just def'
 turn :: Space -> Units -> Coords -> Mob -> Units
 turn space units key _ = do
   let (mob, units') = (units SM.! key, SM.delete key units)
-  let (targets, opts') = (slots space units' mob, moves space units' [] SM.empty key)
+  let (targets, opts') = (slots space units' mob, moves space units [] SM.empty key)
+  let alt = foldl (route space units key) SM.empty targets
   let opts = SM.mapWithKey (resolve opts') opts'
   let selected = targets `intersect` SM.keys opts
-  let nearest = traceShow (opts', key) $ (++) (sortOn (length.(opts SM.!)) selected) [key]
+  let nearest = traceShow (alt) $ (++) (sortOn (length.(opts SM.!)) selected) [key]
   let move = (++) (opts SM.! head nearest) [key] !! 1
   let units'' = SM.insert move mob units'
   case select (enemy units mob) move of
@@ -94,3 +109,7 @@ turn space units key _ = do
 system :: (Space, Units) -> [Units]
 system (space, units) = iterate f units where
   f xs = SM.foldlWithKey (turn space) xs xs
+
+test = do
+  (space, units) <- input
+  pure $ build space units (SM.singleton (1,2) [(1,2)]) (1,3)
