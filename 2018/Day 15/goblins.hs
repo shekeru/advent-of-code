@@ -46,17 +46,16 @@ check :: Coords -> Space -> Bool
 check (y,x) vs = (y >= 0) && (x >= 0) && (y < length vs)
   && (x < length (vs !! y)) && ((vs !! y) !! x)
 
-enemy :: Units -> Mob -> Units
-enemy vs unit = SM.filter opposing vs where
-  opposing x = _side unit /= _side x
+team vs f y = SM.filter (on f _side y) vs
 
-select :: Units -> Coords -> Maybe Coords
-select units (y, x) = listToMaybe $ sortOn f [crds |
-  crds <- [(y-1, x), (y, x-1), (y, x+1), (y+1, x)],
-  SM.member crds units] where f k = _hp (units SM.! k)
+select :: Space -> Units -> Coords -> Maybe Coords
+select space units mob = listToMaybe $ sortOn metric $
+  filter (`SM.member` units) $ adj space units mob
+    where metric key = _hp (units SM.! key)
 
 slots :: Space -> Units -> Mob -> [Coords]
-slots space units mob = concatMap (adj space units) (SM.keys $ enemy units mob)
+slots space units mob = concatMap (adj space units)
+  (SM.keys $ team units (/=) mob)
 
 moves :: Space -> Units -> Overlay -> Coords -> Overlay
 moves space units sys crds = SM.unionsWith (\a b ->
@@ -72,14 +71,14 @@ damage agg (Just def) = if _hp def' > 0 then Just def'
 turn :: Space -> Units -> Coords -> Mob -> Units
 turn space units key _ = do
   let (mob, units') = (units SM.! key, SM.delete key units)
-  let opts = traceShowId $ moves space units' (SM.fromList [(key, [])]) key
-  let selected = slots space units' mob `intersect` SM.keys opts
-  let nearest = traceShowId (sortOn (length.(opts SM.!)) selected)
-  let move = (++) (opts SM.! head nearest) [key] !! 1
-  let units'' = SM.insert move mob units'
-  case select (enemy units mob) move of
-    Just attack -> SM.alter (damage mob) attack units''
-    Nothing -> units''
+  let opts = moves space units' (SM.fromList [(key, [])]) key
+  let targets = slots space units' mob `intersect` SM.keys opts
+  let move = case listToMaybe $ sortOn (length.(opts SM.!)) targets of
+        Just path -> last $ key : opts SM.! path; Nothing -> key
+  let forwards = SM.insert move mob units'
+  case select space (team forwards (/=) mob) move of
+    Just attack -> SM.alter (damage mob) attack forwards
+    Nothing -> forwards
 
 system :: (Space, Units) -> [Units]
 system (space, units) = iterate f units where
