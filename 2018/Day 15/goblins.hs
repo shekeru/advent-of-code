@@ -23,7 +23,7 @@ main = print ""
 
 input :: IO (Space, Units)
 input = do
-  xss <- lines <$> readFile "test1.txt"
+  xss <- lines <$> readFile "test0.txt"
   let parse (y,_,v) = mapAccumL addTile (y+1, 0, v)
   let ((_,_, carts), tracks) = mapAccumL parse (-1, 0, SM.empty) xss
   return (tracks, carts)
@@ -78,7 +78,7 @@ turn space units key _ = do
   let options = moves space units' 0 SM.empty key
   let selected = targets `intersect` SM.keys options
   if null selected then units else do
-    let move = last $ key: path options (head selected)
+    let move = last $ traceShowId (path options (head selected))
     let units'' = SM.insert move mob units'
     case select (enemy units mob) move of
       Just attack -> SM.alter (damage mob) attack units''
