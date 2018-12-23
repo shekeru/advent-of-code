@@ -1,0 +1,37 @@
+A,B,C,D,E,F = [0,0,0,0,0,0]:IP{D}
+0: SKIP 16
+1: SET B 1
+2: SET E 1
+3: SET F, B * E
+4: SET F, F == C
+5: SKIP F
+6: SKIP 1
+7: SET A, B + A
+8: SET E, E + 1
+9: SET F, E > B
+10: SKIP F
+11: SET D, 2
+12: SET B, B + 1
+13: SET F, B > C
+14: SKIP F
+15: GOTO 2
+16: SET D, D*D
+17: SET C, C + 2
+18: SET C, C * C
+19: SET C, D * C
+20: SET C, C * 11
+21: SET F, F + 5
+22: SET F, F * D
+23: SET F, F + 6
+24: SET C, C + F
+25: SET D, D + A
+26: SET D, 0
+27: SET F, D
+28: SET F, F * D
+29: SET F, D + F
+30: SET F, D * F
+31: SET F, F * 14
+32: SET F, F * D
+33: SET C, C + F
+34: SET A, 0
+35: SET D, 0
