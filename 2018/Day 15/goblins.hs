@@ -24,11 +24,11 @@ makeLenses ''Mob
 
 main = do
   silver <- system <$> input
-  printf "Silver: %d" silver
+  printf "Silver: %d\n" silver
 
 input :: IO (Space, Units)
 input = do
-  xss <- lines <$> readFile "input.txt"
+  xss <- lines <$> readFile "test5.txt"
   let parse (y,_,v) = mapAccumL addTile (y+1, 0, v)
   let ((_,_, carts), tracks) = mapAccumL parse (-1, 0, SM.empty) xss
   return (tracks, carts)
@@ -61,12 +61,12 @@ slots :: Space -> Units -> Mob -> [Coords]
 slots space units mob = concatMap (adj space units)
   (SM.keys $ team units (/=) mob)
 
-moves :: Space -> Units -> Overlay -> Coords -> Overlay
-moves space units sys crds = LM.unionsWith (\a b ->
-  if length a <= length b then a else b) $ sys : [bfs next
-    | next <- adj space units crds, next `LM.notMember` sys] where
+moves :: Space -> Units -> [Coords] -> Overlay -> Coords -> Overlay
+moves space units valid sys crds = LM.unionsWith (\a b -> if length a <=
+  length b then a else b) $ sys : [bfs next | next <- adj space units crds,
+    next `LM.notMember` sys, all (`notElem` valid) $ LM.keys sys] where
   sys' key = LM.insert key (key : (LM.findWithDefault [] crds sys)) sys
-  bfs next = moves space units (sys' next) next
+  bfs next = moves space units valid (sys' next) next
 
 damage :: Mob -> Maybe Mob -> Maybe Mob
 damage agg (Just def) = if _hp def' > 0 then Just def'
@@ -78,16 +78,21 @@ silver space (True, units) key mob = (not (SM.null $ team units (/=) mob),
 silver space (False, units) key mob = (False, units)
 
 turn :: Space -> Units -> Coords -> Units
-turn space units key = if key `SM.member` units then do
-  let (mob, units') = (units SM.! key, SM.delete key units)
-  let opts = traceShowId $ moves space units' (LM.fromList [(key, [])]) key
-  let targets = slots space units' mob `intersect` SM.keys opts
-  let move = case listToMaybe $ sortOn (length.(opts SM.!)) targets of
-        Just path -> last $ key : opts SM.! path; Nothing -> key
-  let forwards =  traceShowId $ SM.insert move mob units'
-  case select (team forwards (/=) mob) move of
-    Just attack -> SM.alter (damage mob) attack forwards
-    Nothing -> forwards
+turn space units key = if (traceShowId key) `SM.member` units then do
+  let (mob, units') = traceShowId $ (units SM.! key, SM.delete key units)
+  case select (team units (/=) mob) key of
+    Just attack -> SM.alter (damage mob) attack units
+    Nothing -> do
+    let (valid, start) = traceShowId $ (slots space units' mob, LM.fromList [(key, [])])
+    let opts = if key `elem` valid then start else
+          moves space units' valid start key
+    let targets = valid `intersect` LM.keys opts
+    let move = case listToMaybe $ sortOn (length.(opts LM.!)) targets of
+          Just path -> last $ key : opts LM.! path; Nothing -> key
+    let forwards = SM.insert move mob units'
+    case select (team forwards (/=) mob) move of
+      Just attack -> SM.alter (damage mob) attack forwards
+      Nothing -> forwards
   else units
 
 system :: (Space, Units) -> _
@@ -96,7 +101,7 @@ system (space, units) = solve.head.dropWhile (snd.fst) $ iterate partial ((0, Tr
     (bool', ys) = SM.foldlWithKey (silver space) (bool, xs) xs
   solve ((int, bool), xs) = int * SM.foldr (\a b -> _hp a + b) 0 xs
 
-test = do
-  (space, units) <- input
-  let key = (2, 1)
-  pure $ moves space units (SM.singleton key []) key
+-- test = do
+--   (space, units) <- input
+--   let key = (2, 1)
+--   pure $ moves space units (SM.singleton key []) key
