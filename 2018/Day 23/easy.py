@@ -14,7 +14,7 @@ print("Silver:", len([x for x in xs if
 # Fucking Part 2 Garbage
 print("Now conducting initial scan")
 limit = max(x[3] for x in xs)
-steps = min(x[3] for x in xs)//4
+steps = min(x[3] for x in xs)//8
 sets = defaultdict(lambda: defaultdict(int))
 for x in range(-limit, limit+1, 1+steps):
     for y in range(-limit, limit+1, 1+steps):
@@ -22,10 +22,10 @@ for x in range(-limit, limit+1, 1+steps):
             n = len([t for t in xs if m_dist([x,y,z], t) <= t[3]])
             sets[0][x] += n; sets[1][y] += n; sets[2][z] += n
 print("Now optimizing...")
-for _ in range(25):
+for _ in range(20):
     l = defaultdict(lambda: defaultdict(int))
     for k in sets:
-        pts = sorted(sets[k].items(), reverse = True, key = lambda x: x[1])[:5]
+        pts = sorted(sets[k].items(), reverse = True, key = lambda x: x[1])[:4]
         l[k][0], l[k][1] = min(a for a,b in pts), max(a for a,b in pts)
     sets = defaultdict(lambda: defaultdict(int))
     for x in range(l[0][0], l[0][1]+1, (l[0][1]-l[0][0]) // 6):
@@ -48,4 +48,4 @@ for d in [-1000*1000, -1000*100, *range(-10000, 0)]:
     if last == (x,y,z):
         break
     last = (x,y,z)
-init, m_dist([x,y,z], [0,0,0])
+print(init, m_dist([x,y,z], [0,0,0]))
