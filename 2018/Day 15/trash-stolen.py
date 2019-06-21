@@ -10,7 +10,7 @@ class Pt(NamedTuple('Pt', [('x', int), ('y', int)])):
 
     @property
     def nb4(self):
-        return [self + d for d in [Pt(0, 1), Pt(1, 0), Pt(0, -1), Pt(-1, 0)]]
+        return [self + d for d in [Pt(0, -1), Pt(1, 0), Pt(0, 1), Pt(-1, 0)]]
 
 class Team(enum.Enum):
     ELF = enum.auto()
@@ -113,7 +113,7 @@ class Grid(dict):
 
         return closest
 
-lines = open('2018/Day 15/input.txt').read().splitlines()
+lines = open('input.txt').read().splitlines()
 
 grid = Grid(lines)
 print('part 1:', grid.play())

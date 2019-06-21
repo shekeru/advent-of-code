@@ -11,9 +11,10 @@ st = max(sys, key = lambda pt: pt[3])
 print("Silver:", len([pts for pts in sys if
     m_dist(st, pts) <= st[3]]))
 # Fucking Part 2 Garbage
+print(m_dist((11008975, 28886116, 46356905), (0,0,0)))
 xs, ys, zs, rs = zip(*sys); steps, sig = dict([
-    ((11008974, 28886120, 46356910), 915),
-    ((11008977, 28886118, 46356905), 915),
+    ((11008974, 28886114, 46356904), 915),
+    ((11008975, 28886116, 46356905), 915),
     ((11008978, 28886123, 46356910), 913),
     ((11008823, 28885334, 46356274), 912),
     ((11023345, 28959806, 46416223), 909),
@@ -28,21 +29,21 @@ global_entropy = lambda: [randint(*n) for n in inits]
 for lvl in range(50):
     # Retry Keys
     for x,y,z in list(steps.keys()):
-        x += randint(-3,0); y += randint(-3,0); z += randint(-3,0)
+        x += randint(-1,0); y += randint(-1,0); z += randint(-1,0)
         steps[x,y,z] = len([pts for pts in sys if m_dist([x,y,z], pts) <= pts[3]])
     # General Descent [1000]
-    for x in range(min(xs), max(xs)+1, 1+(max(xs)-min(xs))//10):
-        for y in range(min(ys), max(ys)+1, 1+(max(ys)-min(ys))//10):
-            for z in range(min(zs), max(zs)+1, 1+(max(zs)-min(zs))//10):
-                steps[x,y,z] = len([pts for pts in sys if m_dist([x,y,z], pts) <= pts[3]])
+    #for x in range(min(xs), max(xs)+1, 1+(max(xs)-min(xs))//10):
+    #    for y in range(min(ys), max(ys)+1, 1+(max(ys)-min(ys))//10):
+    #        for z in range(min(zs), max(zs)+1, 1+(max(zs)-min(zs))//10):
+    #            steps[x,y,z] = len([pts for pts in sys if m_dist([x,y,z], pts) <= pts[3]])
     # Local Entropy [1000]
     for _ in range(1000):
-        x,y,z = [randint(min(n), max(n)) for n in [xs,ys,zs]]
+        x,y,z = [randint(min(n)-10000, max(n)+10000) for n in [xs,ys,zs]]
         steps[x,y,z] = len([pts for pts in sys if m_dist([x,y,z], pts) <= pts[3]])
     # Random Entropy [150]
     for _ in range(150):
         x,y,z = global_entropy()
         steps[x,y,z] = len([pts for pts in sys if m_dist([x,y,z], pts) <= pts[3]])
-    steps, best200 = {}, sorted(steps.items(), reverse=True, key = lambda x: x[1])[:15]
+    steps, best200 = {}, sorted(steps.items(), reverse=True, key = lambda x: x[1])[:125]
     xs, ys, zs = zip(*(b[0] for b in best200)); steps = dict(best200)
     print(f"Level: {lvl} Optimal: {best200[:5]}")
