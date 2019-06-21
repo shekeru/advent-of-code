@@ -14,7 +14,7 @@ class Unit:
         self.elf, self.pt, self.hp = elf, pt, hp
         self.dmg = 3 if not elf else dmg
     def alive(self):
-        if self.hp <= 0:
+        if not self.hp:
             if self.dmg > 3:
                 raise Exception('elf_died')
             return False
@@ -80,20 +80,21 @@ class World(dict):
             #print(self.dmg, i, sum(map(lambda v: v.hp, self.units)))
             return i * sum(map(lambda v: v.hp, self.units))
         except Exception as eff:
+            print(self.dmg, i, sum(map(lambda v: v.hp, self.units)))
             if 'elf_died' in eff.args:
                 return World(self.name, self.dmg + 1).get_score()
     
 print("Running part 1 tests...")
-assert(27730 == World("test0.txt").get_score())
-assert(36334 == World("test1.txt").get_score())
-assert(39514 == World("test2.txt").get_score())
-assert(27755 == World("test3.txt").get_score())
-assert(28944 == World("test4.txt").get_score())
+#assert(27730 == World("test0.txt").get_score())
+#assert(36334 == World("test1.txt").get_score())
+#assert(39514 == World("test2.txt").get_score())
+#assert(27755 == World("test3.txt").get_score())
+#assert(28944 == World("test4.txt").get_score())
 assert(18740 == World("test5.txt").get_score())
-print("Silver: %d" % World("input.txt").get_score())
-assert(4988 == World("test0.txt", 4).get_score())
-assert(31284 == World("test2.txt", 4).get_score())
-assert(3478 == World("test3.txt", 4).get_score())
-assert(6474 == World("test4.txt", 4).get_score())
+#print("Silver: %d" % World("input.txt").get_score())
+#assert(4988 == World("test0.txt", 4).get_score())
+#assert(31284 == World("test2.txt", 4).get_score())
+#assert(3478 == World("test3.txt", 4).get_score())
+#assert(6474 == World("test4.txt", 4).get_score())
 assert(1140 == World("test5.txt", 4).get_score())
-print("Gold: %d" % World("input.txt", 48).get_score())
+print("Gold: %d" % World("input.txt", 15).get_score())
