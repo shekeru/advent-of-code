@@ -53,9 +53,8 @@ class World(dict):
             return unit.dmg == self.elf_dmg
         # Move, Find Nearby, Attack, Clamp HP
         unit.pt = next(self.next_move(unit, targets))
-        opponents = [v for v in targets if v.pt in unit.pt.nb4]
-        if opponents:
-            target = min(opponents, key = lambda v: (v.hp, v.pt))
+        for target in sorted([v for v in targets if v.pt in
+            unit.pt.nb4], key = lambda v: (v.hp, v.pt))[:1]:
             target.hp = max(0, target.hp - unit.dmg)
     # Simulate battle
     def fight_all(self, turns = 0):
@@ -80,6 +79,7 @@ assert(39514 == World("test2.txt").get_score())
 assert(27755 == World("test3.txt").get_score())
 assert(28944 == World("test4.txt").get_score())
 assert(18740 == World("test5.txt").get_score())
+
 print("Running section 2 tests...")
 assert(4988 == World("test0.txt", 4).get_score())
 assert(31284 == World("test2.txt", 4).get_score())
