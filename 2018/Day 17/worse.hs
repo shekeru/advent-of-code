@@ -11,19 +11,17 @@ data Tile = Clay | Empty | Flowing | Water
 type Vein = (Char, [Int])
 type Coords = (Int, Int)
 
-main = print ""
+main :: IO ()
+main = do
+  xs <- system <$> input
+  print $ head xs
 
 input :: IO (Map, [Coords])
-input = parse.map regex.lines <$> readFile "input.txt" where
+input = parse.map regex.lines <$> readFile "test.txt" where
   regex xs = (head xs, map read $ matches $xs *=~ [re|@{%int}|])
-  parse xs = (foldl handle (SM.singleton (1, 500) Flowing) xs, [(1, 500)])
-
-handle :: Map -> Vein -> Map
-handle vs ('y', [y,a,b]) = foldl (\vs x -> SM.insert (y, x) Clay vs) vs [a..b]
-handle vs ('x', [x,a,b]) = foldl (\vs y -> SM.insert (y, x) Clay vs) vs [a..b]
-
-safelyGet :: Coords -> Map -> Tile
-safelyGet = SM.findWithDefault Empty
+  parse xs = (foldl expand SM.empty xs, [(1, 500)]) where
+    expand vs ('y', [y,a,b]) = foldl (\vs x -> SM.insert (y, x) Clay vs) vs [a..b]
+    expand vs ('x', [x,a,b]) = foldl (\vs y -> SM.insert (y, x) Clay vs) vs [a..b]
 
 flow :: (Map, [Coords]) -> Coords -> (Map, [Coords])
 flow (vs, keys) k@(y, x) = case safelyGet k vs of
@@ -52,17 +50,25 @@ extend (vs, keys) = foldl addFlow (vs, keys) opts' where
     cmb [(y, x+1), (y, x-1)]; opts' = SM.keys$ SM.filterWithKey (\
       (y, x) a -> Flowing == a && (solid $ safelyGet (y+1, x) vs)) vs
 
+varFill :: Map -> Coords -> Int -> [Coords]
+varFill vs k@(y, x) i = if fill_check (y+1, x) && (! fill_check k)
+    then k : varFill vs (y, x - i) i else [] where
+      checking z = solid $ safelyGet z vs
+
+system :: (Map, [Coords]) -> [(Map, [Coords])]
+system = iterate physics
+
+physics :: (Map, [Coords]) -> (Map, [Coords])
+physics (state, starts) = do
+  let (state', flows) = foldl flow (state, []) starts
+  let next = foldl expand state' flows
+--foldl spill (next, []) keys
+
+safelyGet :: Coords -> Map -> Tile
+safelyGet = SM.findWithDefault Empty
+
 valid :: Map -> Coords -> Bool
 valid vs (y,x) = (fst.fst.SM.findMax) vs >= y
 
 solid :: Tile -> Bool
 solid tile = tile == Water || tile == Clay
-
-physics :: (Map, [Coords]) -> (Map, [Coords])
-physics (state, starts) = do
-  let (two, keys) = foldl flow (state, []) starts
-  let next = foldl sides two keys
-  foldl spill (next, []) keys
-
-system :: (Map, [Coords]) -> [(Map, [Coords])]
-system = iterate physics
