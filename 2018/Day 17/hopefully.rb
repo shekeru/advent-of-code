@@ -11,19 +11,20 @@ class System
         @space[Array[x].send(vein.ord.odd? \
           ? 'append' : 'prepend', c)] = :clay
     }; end
+    @y0 = @space.keys.max_by(&:last).last
+    @y1 = @space.keys.min_by(&:last).last
   end
   def cycle(flows)
-    @stack.clear; ys = []; puts flows
+    @stack.clear; ys = []
     flows.each &->(xs){flow(*xs)}
-    (@stack.dup).each do |tile| @stack.clear
+    @stack.dup.each do |tile| @stack.clear
       [expand(*tile, 1), expand(*tile)
       ].all? ? self.settle : (ys.push *@stack)
-    end; puts @space
-    cycle ys if !ys.empty?
+    end; cycle ys if !ys.empty?
   end
   # Flow Down
   def flow(x, y)
-    unless @space[[x,y]] then
+    unless @space[[x,y]] || y > @y0 then
       @space[[x, y]] = :water
       @stack.unshift([x,y])
       self.flow(x, y+1)
@@ -49,8 +50,19 @@ class System
   def solid?(x,y)
     [:stale, :clay].include? @space[[x,y]]
   end
+  # count_all
+  def count
+    self.cycle [[500, 0]]
+    @space.reduce 0, &->(s, ((x, y), v)) do
+      if y >= @y1 && [:stale, :water].include?(v)
+        then 1 else 0 end + s
+    end
+  end
 end
 
-sys = System.new('test.txt')
-sys.cycle [[500, 1]]
-puts sys.space
+testCase = System.new('test.txt')
+raise "failed test" unless
+  testCase.count == 57
+# Run it
+solution = System.new('input.txt')
+puts "Silver: #{solution.count}"
