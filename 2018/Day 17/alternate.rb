@@ -18,14 +18,16 @@ class Tile
           *@sys[@y, @x].expand([], 1).drop(1)]
         if layer[0].solid? and layer[-1].solid? then
           layer[1..-2].each &->(tile) { tile.type = :stable}
+            @sys[@y - 1, @x].flow
+        else layer[0].flow; layer[-1].flow
         end
       end
     end
   end
   # Flow Sideways
   def expand(section, c)
-    section.push(self); puts "Pos: #{@y}, #{@x}"
-    return section if solid? or !solid(@y+1, @x)
+    section.push(self); return section \
+      if solid? or !solid(@y+1, @x)
     (@sys[@y, @x-c] || Tile.new(@sys, @y, @x-c,
       :water)).expand(section, c)
   end
