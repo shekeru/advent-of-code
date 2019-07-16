@@ -8,8 +8,9 @@ class Tile
     @sys, @y, @x, = sys, y, x
   end
   # Flow Down
-  def flow
+  def flow(iters = 0)
       return if @y > @sys.ymax
+    puts "Current level: #{@y}, "
     if @type == :water then
       unless @sys[@y+1, @x] then
         Tile.new(@sys, @y+1, @x, :water).flow
@@ -17,12 +18,14 @@ class Tile
         layer = [*@sys[@y, @x].expand([], -1).reverse,
           *@sys[@y, @x].expand([], 1).drop(1)]
         if layer[0].solid? and layer[-1].solid? then
-          layer[1..-2].each &->(tile) { tile.type = :stable}
-            @sys[@y - 1, @x].flow
+          layer[1..-2].each &->(tile) {
+            tile.type = :stable
+          }; layer[1..-2].each(&:update)
         else layer[0].flow; layer[-1].flow
         end
       end
     end
+    @sys.render
   end
   # Flow Sideways
   def expand(section, c)
@@ -31,6 +34,10 @@ class Tile
     (@sys[@y, @x-c] || Tile.new(@sys, @y, @x-c,
       :water)).expand(section, c)
   end
+  # Upwards Updates
+  def update
+   @sys[@y - 1, @x].flow(1) if @sys[@y - 1, @x]
+ end
   # Tile Checks
   def solid(y, x)
     tile = @sys[y, x]
@@ -81,8 +88,19 @@ class System < Hash
     def [](y, x)
       self.fetch([y,x], nil)
     end
+    # Solution Functions
+    def silver
+      self.reduce 0, &->(s, ((y, x), t)) do
+        if y >= @ymin && t.water?
+          then 1 else 0 end + s
+      end
+    end
 end
 # Run Our Example System
 testCase = System.new('test.txt')
-puts testCase
-testCase.render
+raise "failed test" unless
+  testCase.silver == 57
+# Solver for Silver
+#solution = System.new('test.txt')
+#puts "Silver: #{solution.count}"
+#solution.render
