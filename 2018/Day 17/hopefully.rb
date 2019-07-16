@@ -1,3 +1,7 @@
+require 'rubygems'
+require 'imageruby'
+include ImageRuby
+
 class System
   attr_accessor :stack
   attr_accessor :space
@@ -13,6 +17,8 @@ class System
     }; end
     @y0 = @space.keys.max_by(&:last).last
     @y1 = @space.keys.min_by(&:last).last
+    @x0 = @space.keys.max_by(&:first).first
+    @x1 = @space.keys.min_by(&:first).first
   end
   def cycle(flows)
     @stack.clear; ys = []
@@ -24,7 +30,8 @@ class System
   end
   # Flow Down
   def flow(x, y)
-    unless @space[[x,y]] || y > @y0 then
+    puts "#{x}, #{y}"
+    unless solid?(x, y) || y > @y0 then
       @space[[x, y]] = :water
       @stack.unshift([x,y])
       self.flow(x, y+1)
@@ -32,7 +39,6 @@ class System
   end
   # Flow Sideways
   def expand(x, y, n = -1)
-    #puts "X: #{x}, Y: #{y}, #{solid?(x, y+1)}"
     if solid?(x, y+1) then
       @stack.unshift([x,y])
       @space[[x,y]] = :water
@@ -42,21 +48,31 @@ class System
   end
   # Balance to Pools
   def settle
-    @stack.each do |tile|
-      @space[tile] = :stale
+    @stack.dup.each do |x, y|
+      @space[[x, y]] = :stale
     end
   end
   # Check Solid
   def solid?(x,y)
     [:stale, :clay].include? @space[[x,y]]
   end
+  def water?(x,y)
+    [:stale, :water].include? @space[[x,y]]
+  end
   # count_all
   def count
     self.cycle [[500, 0]]
-    @space.reduce 0, &->(s, ((x, y), v)) do
-      if y >= @y1 && [:stale, :water].include?(v)
+    @space.reduce 0, &->(s, ((x, y), _)) do
+      if y >= @y1 && water?(x, y)
         then 1 else 0 end + s
     end
+  end
+  # debug render
+  def render
+    image = Image.new(@x0 - @x1 + 1, @y0 - @y1 + 1)
+    (@y1..@y0).each do |y| (@x1..@x0). each do |x|
+      image[x-@x1,y-@y1] = Color.from_rgb(40, solid?(x, y) ?224:0, water?(x, y) ?224:0)
+    end; end; image.save('debug.bmp', :bmp)
   end
 end
 
@@ -64,5 +80,6 @@ testCase = System.new('test.txt')
 raise "failed test" unless
   testCase.count == 57
 # Run it
-solution = System.new('input.txt')
+solution = System.new('test.txt')
 puts "Silver: #{solution.count}"
+solution.render
