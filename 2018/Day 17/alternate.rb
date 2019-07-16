@@ -2,6 +2,7 @@ require 'imageruby'
 include ImageRuby
 # Helper Class
 class Tile
+  attr_accessor :type
   def initialize(sys, y, x, t = nil)
     @type, sys[y, x] = t, self
     @sys, @y, @x, = sys, y, x
@@ -10,14 +11,31 @@ class Tile
   def flow
       return if @y > @sys.ymax
     if @type == :water then
-      Tile.new(@sys, @y+1, @x, :water).flow unless @sys[@y+1, @x]
-    elsif solid? then
-      @sys[y - 1, x].expand
+      unless @sys[@y+1, @x] then
+        Tile.new(@sys, @y+1, @x, :water).flow
+      else
+        layer = [*@sys[@y, @x].expand([], -1).reverse,
+          *@sys[@y, @x].expand([], 1).drop(1)]
+        if layer[0].solid? and layer[-1].solid? then
+          layer[1..-2].each &->(tile) { tile.type = :stable}
+        end
+      end
     end
   end
   # Flow Sideways
-  def expand
-    nil
+  def expand(section, c)
+    section.push(self); puts "Pos: #{@y}, #{@x}"
+    return section if solid? or !solid(@y+1, @x)
+    (@sys[@y, @x-c] || Tile.new(@sys, @y, @x-c,
+      :water)).expand(section, c)
+  end
+  # Tile Checks
+  def solid(y, x)
+    tile = @sys[y, x]
+    tile.solid? if tile
+  end
+  def water?
+    [:stable, :water].include? @type
   end
   def solid?
     [:stable, :clay].include? @type
@@ -25,7 +43,7 @@ class Tile
   # Yeet that type out
   def color
     isSolid = self.solid? ? 240:30
-    isWater = @type == :water ? 240:30
+    isWater = self.water? ? 240:30
     Color.from_rgb(40, isSolid, isWater)
   end
   def inspect
