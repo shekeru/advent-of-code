@@ -1,7 +1,7 @@
 require 'imageruby'
 include ImageRuby
 $VERBOSE = nil
-# Helper Class
+# Tile Unit Class
 class Tile
   attr_accessor :type, :y, :x
   def initialize(sys, y, x, t = nil)
@@ -13,36 +13,33 @@ class Tile
     #puts "Expanding: #{@y}, #{@x}"
     tiles = [*self.expand([], -1).reverse,
       *self.expand([], 1).drop(1)]
-    # Settle water, if bounded
+    # Settle water, if clay bounded
     if tiles.values_at(0, -1).all?(&:solid?) then
-      tiles[1..-2].each &->(tile) {
+      tiles[1..-2].each(&->(tile) {
         tile.type = :stable
-      }; head = tiles.find \
-      {|t| @sys[t.y - 1, t.x]&.water?}
-      return @sys[head.y - 1, head.x]
+      }).each {|t|
+        head = @sys[t.y - 1, t.x]
+        return head if head &.water?
+      } # Otherwise, flow corners
     end; @sys.stack.push \
       *tiles.values_at(0, -1)
     return nil
   end
-  # Flow until a solid, or limit
+  # Flow until solids, or limit
   def flow(y = @y)
     #puts "Flowing Down: #{@y}, #{@x}"
     while !@sys[y+=1, @x] && y <= @sys.ymax do
       last = Tile.new(@sys, y, @x, :water)
     end; return last
   end
-  # Flow Sideways
+  # Expand flow sideways
   def expand(section, c)
     section.push(self); return section \
-      if solid? or !solid(@y+1, @x)
+      if solid? or !@sys[@y+1, @x]&.solid?
     (@sys[@y, @x-c] || Tile.new(@sys, @y, @x-c,
       :water)).expand(section, c)
   end
   # Tile Checks
-  def solid(y, x)
-    tile = @sys[y, x]
-    tile.solid? if tile
-  end
   def water?
     [:stable, :water].include? @type
   end
@@ -70,11 +67,10 @@ class System < Hash
     } end; @ymin, @ymax = *self.keys.map(&:first).minmax
     @xmin, @xmax = *keys.map(&:last).minmax; @xmax += 1
     @stack = [Tile.new(self, 0, 500, :water)]; @xmin -= 1
-    # Aids-donkey looping
     while head = @stack.shift do
       next unless last = head.flow
         while last = last.spill do end
-    end; render
+    end; render # Aids-donkey looping
   end
   # Display Image
   def render(z = nil)
@@ -99,11 +95,11 @@ class System < Hash
     end
   end
 end
-# Run Our Example System
+# Check our Example Case
 testCase = System.new('test.txt')
 raise "failed test" unless 57 ==
   testCase.solve(:water, :stable)
-# Solver for Silver
+# Half a year later...
 solution = System.new('input.txt')
 puts "Silver: #{solution.solve(:water, :stable)}"
 puts "Gold: #{solution.solve(:stable)}"
