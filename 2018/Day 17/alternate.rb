@@ -1,3 +1,7 @@
+# Fuck you ruby
+RubyVM::DEFAULT_PARAMS = {
+  thread_vm_stack_size: 1048576^2,
+}
 require 'imageruby'
 include ImageRuby
 # Helper Class
@@ -8,24 +12,25 @@ class Tile
     @sys, @y, @x, = sys, y, x
   end
   # Flow Down
-  def flow(iters = 0)
-      return if @y > @sys.ymax
-    puts "Current level: #{@y}, "
+  def flow(iters = nil)
+      return if @y >= @sys.ymax
+    puts "Current tile: #{@y}, #{@x}"
     if @type == :water then
       unless @sys[@y+1, @x] then
-        Tile.new(@sys, @y+1, @x, :water).flow
+        return { Tile.new(@sys, @y+1, @x, :water).flow(@y) }
       else
+          return if @y == iters # Fuck everything else
         layer = [*@sys[@y, @x].expand([], -1).reverse,
           *@sys[@y, @x].expand([], 1).drop(1)]
         if layer[0].solid? and layer[-1].solid? then
           layer[1..-2].each &->(tile) {
             tile.type = :stable
           }; layer[1..-2].each(&:update)
-        else layer[0].flow; layer[-1].flow
+        else layer[0].flow(@y); layer[-1].flow(@y)
         end
       end
     end
-    @sys.render
+    #@sys.render(@y); #gets
   end
   # Flow Sideways
   def expand(section, c)
@@ -36,7 +41,7 @@ class Tile
   end
   # Upwards Updates
   def update
-   @sys[@y - 1, @x].flow(1) if @sys[@y - 1, @x]
+   @sys[@y - 1, @x].flow(@y) if @sys[@y - 1, @x]
  end
   # Tile Checks
   def solid(y, x)
@@ -50,10 +55,11 @@ class Tile
     [:stable, :clay].include? @type
   end
   # Yeet that type out
-  def color
+  def color(isActive = false)
+    isActive = isActive ? 240:30
     isSolid = self.solid? ? 240:30
     isWater = self.water? ? 240:30
-    Color.from_rgb(40, isSolid, isWater)
+    Color.from_rgb(isActive, isSolid, isWater)
   end
   def inspect
     @type
@@ -71,14 +77,15 @@ class System < Hash
     } end
     ys, xs = self.keys.map(&:first), self.keys.map(&:last)
     @ymin, @ymax, @xmin, @xmax = *ys.minmax, *xs.minmax
-      Tile.new(self, 0, 500, :water).flow # Spawn Spring
+      Fn = Tile.new(self, 0, 500, :water).flow # Spawn Spring
+      while Fn = yield Fn do end
     end
     # Display Image
-    def render
+    def render(z = nil)
       image = Image.new(1 + @xmax - @xmin, 1 + @ymax - @ymin)
       (@ymin..@ymax).each do |y| (@xmin..@xmax). each do |x|
         if tile = self[y, x] then
-          image[x - @xmin, y - @ymin] = tile.color
+          image[x - @xmin, y - @ymin] = tile.color(y == z)
       end end end; image.save('debug.bmp', :bmp)
     end
     # Fuck Nested Arrays
@@ -98,6 +105,7 @@ class System < Hash
 end
 # Run Our Example System
 testCase = System.new('test.txt')
+puts testCase
 raise "failed test" unless
   testCase.silver == 57
 # Solver for Silver
