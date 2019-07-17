@@ -1,31 +1,33 @@
 require 'imageruby'
 include ImageRuby
+$VERBOSE = nil
 # Helper Class
 class Tile
-  attr_accessor :type
+  attr_accessor :type, :y, :x
   def initialize(sys, y, x, t = nil)
     @type, sys[y, x] = t, self
     @sys, @y, @x, = sys, y, x
   end
-  # Flow Down
-  def flow(iters = nil)
-      return if @y >= @sys.ymax
-    if @type == :water then
-      puts "Current tile: #{@y}, #{@x}, #{caller.size}"
-      unless @sys[@y+1, @x] then
-        @sys.stack.push(-> {Tile.new(@sys, @y+1, @x, :water).flow(@y)})
-      else
-          return if @y == iters # Fuck everything else
-        layer = [*@sys[@y, @x].expand([], -1).reverse,
-          *@sys[@y, @x].expand([], 1).drop(1)]
-        if layer[0].solid? and layer[-1].solid? then
-          layer[1..-2].each &->(tile) {
-            tile.type = :stable
-          }; layer[1..-2].each(&:update)
-        else @sys.stack.push(-> {layer[0].flow(@y)}, -> {layer[-1].flow(@y)})
-        end
-      end
-    end
+  # Flow water sideways
+  def spill
+    puts "Spilling Water: #{@y}, #{@x}"
+    tiles = [*self.expand([], -1).reverse,
+      *self.expand([], 1).drop(1)]
+    # Settle water, if bounded
+    if tiles.values_at(0, -1).all?(&:solid?) then
+      tiles[1..-2].each &->(tile) {
+        tile.type = :stable
+      }; return @sys[@y - 1, @x]
+    end; @sys.stack.push \
+      *tiles.values_at(0, -1)
+    return nil
+  end
+  # Flow until a solid, or limit
+  def flow(y = @y)
+    puts "Flowing Down: #{@y}, #{@x}"
+    while !@sys[y+=1, @x] && y <= @sys.ymax do
+      last = Tile.new(@sys, y, @x, :water)
+    end; return last
   end
   # Flow Sideways
   def expand(section, c)
@@ -34,10 +36,6 @@ class Tile
     (@sys[@y, @x-c] || Tile.new(@sys, @y, @x-c,
       :water)).expand(section, c)
   end
-  # Upwards Updates
-  def update
-   @sys[@y - 1, @x].flow(@y) if @sys[@y - 1, @x]
- end
   # Tile Checks
   def solid(y, x)
     tile = @sys[y, x]
@@ -49,12 +47,10 @@ class Tile
   def solid?
     [:stable, :clay].include? @type
   end
-  # Yeet that type out
+  # Yeet that pixel out
   def color(isActive = false)
-    isActive = isActive ? 240:30
-    isSolid = self.solid? ? 240:30
-    isWater = self.water? ? 240:30
-    Color.from_rgb(isActive, isSolid, isWater)
+    Color.from_rgb(isActive ? 240:30,
+    solid? ? 240:30, water? ? 240:30)
   end
   def inspect
     @type
@@ -69,42 +65,43 @@ class System < Hash
       [*s..e].each &->(x){
         Tile.new self, *Array[x].send(if vein.ord.even?
           then 'append' else 'prepend' end, c), :clay
-    } end; @stack = Array.new
-    ys, xs = self.keys.map(&:first), self.keys.map(&:last)
-    @ymin, @ymax, @xmin, @xmax = *ys.minmax, *xs.minmax
-      Tile.new(self, 0, 500, :water).flow # Spawn Spring
-    while !@stack.empty? do @stack.shift.call
-    end; self.render
+    } end; @ymin, @ymax = *self.keys.map(&:first).minmax
+    @xmin, @xmax = *keys.map(&:last).minmax; @xmax += 1
+    @stack = [Tile.new(self, 0, 500, :water)]; @xmin -= 1
+    # Aids-donkey looping
+    while head = @stack.pop do
+      next self.render unless last = head.flow
+        while last = last.spill do end
+    end
   end
-    # Display Image
-    def render(z = nil)
-      image = Image.new(1 + @xmax - @xmin, 1 + @ymax - @ymin)
-      (@ymin..@ymax).each do |y| (@xmin..@xmax). each do |x|
-        if tile = self[y, x] then
-          image[x - @xmin, y - @ymin] = tile.color(y == z)
-      end end end; image.save('debug.bmp', :bmp)
+  # Display Image
+  def render(z = nil)
+    image = Image.new(1 + @xmax - @xmin, 1 + @ymax - @ymin)
+    (@ymin..@ymax).each do |y| (@xmin..@xmax). each do |x|
+      if tile = self[y, x] then
+        image[x - @xmin, y - @ymin] = tile.color(y == z)
+    end end end; image.save('debug.bmp', :bmp)
+  end
+  # Fuck Nested Arrays
+  def []=(y, x, v)
+    self.store([y,x], v)
+  end
+  def [](y, x)
+    self.fetch([y,x], nil)
+  end
+  # Solution Functions
+  def solve(*types)
+    self.reduce 0, &->(s, ((y, x), t)) do
+      if y >= @ymin && (types.include? \
+        t.type) then 1 else 0 end + s
     end
-    # Fuck Nested Arrays
-    def []=(y, x, v)
-      self.store([y,x], v)
-    end
-    def [](y, x)
-      self.fetch([y,x], nil)
-    end
-    # Solution Functions
-    def silver
-      self.reduce 0, &->(s, ((y, x), t)) do
-        if y >= @ymin && t.water?
-          then 1 else 0 end + s
-      end
-    end
+  end
 end
 # Run Our Example System
-testCase = System.new('input.txt')
-puts testCase.silver
-raise "failed test" unless
-  testCase.silver == 57
+testCase = System.new('test.txt')
+raise "failed test" unless 57 ==
+  testCase.solve(:water, :stable)
 # Solver for Silver
-#solution = System.new('test.txt')
-#puts "Silver: #{solution.count}"
-#solution.render
+solution = System.new('input.txt')
+puts "Silver: #{solution.solve(:water, :stable)}"
+puts "Gold: #{solution.solve(:stable)}"
