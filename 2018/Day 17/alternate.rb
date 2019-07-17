@@ -10,21 +10,23 @@ class Tile
   end
   # Flow water sideways
   def spill
-    puts "Spilling Water: #{@y}, #{@x}"
+    #puts "Expanding: #{@y}, #{@x}"
     tiles = [*self.expand([], -1).reverse,
       *self.expand([], 1).drop(1)]
     # Settle water, if bounded
     if tiles.values_at(0, -1).all?(&:solid?) then
       tiles[1..-2].each &->(tile) {
         tile.type = :stable
-      }; return @sys[@y - 1, @x]
+      }; head = tiles.find \
+      {|t| @sys[t.y - 1, t.x]&.water?}
+      return @sys[head.y - 1, head.x]
     end; @sys.stack.push \
       *tiles.values_at(0, -1)
     return nil
   end
   # Flow until a solid, or limit
   def flow(y = @y)
-    puts "Flowing Down: #{@y}, #{@x}"
+    #puts "Flowing Down: #{@y}, #{@x}"
     while !@sys[y+=1, @x] && y <= @sys.ymax do
       last = Tile.new(@sys, y, @x, :water)
     end; return last
@@ -69,18 +71,18 @@ class System < Hash
     @xmin, @xmax = *keys.map(&:last).minmax; @xmax += 1
     @stack = [Tile.new(self, 0, 500, :water)]; @xmin -= 1
     # Aids-donkey looping
-    while head = @stack.pop do
-      next self.render unless last = head.flow
+    while head = @stack.shift do
+      next unless last = head.flow
         while last = last.spill do end
-    end
+    end; render
   end
   # Display Image
   def render(z = nil)
     image = Image.new(1 + @xmax - @xmin, 1 + @ymax - @ymin)
     (@ymin..@ymax).each do |y| (@xmin..@xmax). each do |x|
-      if tile = self[y, x] then
-        image[x - @xmin, y - @ymin] = tile.color(y == z)
-    end end end; image.save('debug.bmp', :bmp)
+      tile = self[y, x]; image[x - @xmin, y - @ymin] \
+        = tile.color(tile == z) if tile
+    end end; image.save('debug.bmp', :bmp)
   end
   # Fuck Nested Arrays
   def []=(y, x, v)
