@@ -1,7 +1,3 @@
-# Fuck you ruby
-RubyVM::DEFAULT_PARAMS = {
-  thread_vm_stack_size: 1048576^2,
-}
 require 'imageruby'
 include ImageRuby
 # Helper Class
@@ -14,10 +10,10 @@ class Tile
   # Flow Down
   def flow(iters = nil)
       return if @y >= @sys.ymax
-    puts "Current tile: #{@y}, #{@x}"
     if @type == :water then
+      puts "Current tile: #{@y}, #{@x}, #{caller.size}"
       unless @sys[@y+1, @x] then
-        return { Tile.new(@sys, @y+1, @x, :water).flow(@y) }
+        @sys.stack.push(-> {Tile.new(@sys, @y+1, @x, :water).flow(@y)})
       else
           return if @y == iters # Fuck everything else
         layer = [*@sys[@y, @x].expand([], -1).reverse,
@@ -26,11 +22,10 @@ class Tile
           layer[1..-2].each &->(tile) {
             tile.type = :stable
           }; layer[1..-2].each(&:update)
-        else layer[0].flow(@y); layer[-1].flow(@y)
+        else @sys.stack.push(-> {layer[0].flow(@y)}, -> {layer[-1].flow(@y)})
         end
       end
     end
-    #@sys.render(@y); #gets
   end
   # Flow Sideways
   def expand(section, c)
@@ -67,19 +62,20 @@ class Tile
 end
 # Ruby Apprently Doesn't Have Nested Classes
 class System < Hash
-  attr_accessor :ymax, :ymin, :xmax, :min
+  attr_accessor :ymax, :ymin, :xmax, :min, :stack
   def initialize(fname)
     File.readlines(fname).each do |vein|
       c,s,e = vein.scan(/\d+/).to_a.map(&:to_i)
       [*s..e].each &->(x){
         Tile.new self, *Array[x].send(if vein.ord.even?
           then 'append' else 'prepend' end, c), :clay
-    } end
+    } end; @stack = Array.new
     ys, xs = self.keys.map(&:first), self.keys.map(&:last)
     @ymin, @ymax, @xmin, @xmax = *ys.minmax, *xs.minmax
-      Fn = Tile.new(self, 0, 500, :water).flow # Spawn Spring
-      while Fn = yield Fn do end
-    end
+      Tile.new(self, 0, 500, :water).flow # Spawn Spring
+    while !@stack.empty? do @stack.shift.call
+    end; self.render
+  end
     # Display Image
     def render(z = nil)
       image = Image.new(1 + @xmax - @xmin, 1 + @ymax - @ymin)
@@ -104,8 +100,8 @@ class System < Hash
     end
 end
 # Run Our Example System
-testCase = System.new('test.txt')
-puts testCase
+testCase = System.new('input.txt')
+puts testCase.silver
 raise "failed test" unless
   testCase.silver == 57
 # Solver for Silver
