@@ -14,11 +14,10 @@ class Tile
   def update(world)
     # Search Moore neighboorhood
     check = ->(type) do
-      [*(-1..1)].product([*(-1..1)]).select{|xs|
-        xs.sum}.reduce(0) do |s, (y, x)|
-          s + if world[@y+y, @x+x]&.state == type
+      [*(-1..1)].product([*(-1..1)]).reduce(0) do |s, (y, x)|
+        s + if y+x && world[@y+y, @x+x]&.state == type
     then 1 else 0 end end end
-    # Update State
+    # Update Cell State
     @state = case @state
       when :lumber
         if check.call(:lumber) && check.call(:trees) \
@@ -49,9 +48,13 @@ class World < Hash
     end
   end
   # Step Forwards
-  def step
-    merge Hash[map {|k, value|
-      [k, value.update(self)]}]
+  def step(n = 10)
+    n.times do |i| merge Hash[map \
+      {|k, value| [k, value.update(self)]}]
+    end; self
+  end
+  # Count & Multiply
+  def resolve
   end
   # Fuck Nested Arrays
   def []=(y, x, v)
@@ -63,5 +66,4 @@ class World < Hash
 end
 # Run Example
 example = World.new('test.txt')
-puts example
-puts example.step
+example.step
