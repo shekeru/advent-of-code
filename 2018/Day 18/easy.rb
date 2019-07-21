@@ -49,21 +49,17 @@ class World < Hash
       file.read.chop.each_char do |chr|
         if chr == "\n" then [@y += 1, @x = 0] else
           self[@y, @x+=1] = Tile.new(@y, @x, chr)
-        end
-      end
-    end
+    end end end
   end
   # Step Forwards
-  def step(n = 10)
-    period = 0; n.times do |i|
-      @nkt.push(resolve); puts "#{@nkt.length} => #{@nkt.last}"
-      merge!(Hash[map {|k, value| [k, value.update(self)]}])
+  def step(limit = 10)
+    period = 0; limit.times do |i|
+      @nkt.push(resolve); merge!(Hash[map {|k, value| [k, value.update(self)]}])
       if start = @nkt.rindex(resolve) then
         if @nkt.length - start == period then
-          return puts "Step: #{@nkt.length - 1}, Period: #{period}"
+          return @nkt[-period] if 0 == (limit - @nkt.length) % period
         else period = @nkt.length - start end
-      end; return render if i > 500
-    end
+    end end; return resolve
   end
   # Count & Multiply
   def resolve
@@ -87,12 +83,9 @@ class World < Hash
 end
 # Run Example
 testCase = World.new('test.txt')
-testCase.step 10
 raise "failed." unless
-  testCase.resolve == 1147
+  testCase.step == 1147
 # Solve
 world = World.new("input.txt")
-  world.step 10
-puts "Silver: #{world.resolve}"
-  world.step 1000000000
-puts "Gold: #{world.resolve}"
+puts "Silver: #{world.step}"
+puts "Gold: #{world.step(1000000000)}"
