@@ -1,0 +1,37 @@
+D = 123;
+// label-1
+do {
+  D &= 456;
+  if D = EQ(D, 72)
+    break while;
+} while;
+D = 0;
+// label-6
+do {
+  F = D | 65536;
+  D = 5557974;
+  // label-8
+  do {
+    C = F & 255;
+    D += C;
+    D &= 16777215;
+    D *= 65899;
+    D &= 16777215;
+    if C = GT(256, F)
+      break while;
+    C = 0;
+    // label-18
+    do {
+      B = C + 1;
+      B *= 256;
+      if B = GT(B, F)
+        break while;
+      C += 1;
+    } while;
+    // label-26
+    F = C;
+  } while;
+  // label-28
+  if C = EQ(D, A)
+    break while;
+} while;

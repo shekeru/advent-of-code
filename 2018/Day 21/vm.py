@@ -5,8 +5,8 @@ def compile(xs):
     inst, *ys = xs.split()
     return (*ops[inst], *map(int, ys))
 def execute(xs, op, r1, r2, i, v, l):
-    xs[l] = op(xs[i] if r1 else i, xs[v]
-        if r2 else v); return xs
+    xs[l] = int(op(xs[i] if r1 else i, xs[v]
+        if r2 else v)); return xs
 ip, ops = int(ip.split()[1]), {
     'addr': (operator.add, True, True), # addr
     'addi': (operator.add, True, False), # addi
@@ -25,11 +25,17 @@ ip, ops = int(ip.split()[1]), {
     'eqri': (operator.eq, True, False), # eqri
     'eqrr': (operator.eq, True, True), # eqrr
 }; tape = [*map(compile, feed)]
-def silver_scan():
-    ticker, *state = [0]*7
+def scan_vm(gold = False):
+    ticks, state = 0, [0]*6
     while state[ip] < len(tape):
-        inst = tape[state[ip]]; ticker += 1
+        inst = tape[state[ip]]
         if inst[:3] == ops['eqrr']:
-            return state[inst[-2] or inst[-3]]
-        execute(state, *inst); state[ip] += 1
-print('Silver:', silver_scan())
+            if not gold:
+                pass#return state[inst[-2]]
+        print(ticks, state[1:])
+        if ticks > 10000:
+            return
+        execute(state, *inst)
+        state[ip] += 1; ticks += 1
+print('Silver:', scan_vm())
+#print('Gold:', scan_vm(True))
