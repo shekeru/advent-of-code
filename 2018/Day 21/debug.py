@@ -48,7 +48,7 @@ for i, ln in enumerate(lines):
     if f"{r[ip]} += 1" in ln:
         updated[i-1] = updated[i-1].replace('not ', '')
     elif f"{r[ip]} +=" in ln:
-        updated[i] = f"  if not {lines[i-1][2]} do"
+        updated[i] = f"  if not {lines[i-1][0]} do"
     elif f"{r[ip]} =" in ln:
         jmp = int(ln.split('= ')[-1])+1; updated[i] = f"{4*' '}goto label-{jmp}"
         updated[jmp] = f'label-{jmp}: {"{"+r[ip]}: {jmp-1}{"}"}\n' + updated[jmp]

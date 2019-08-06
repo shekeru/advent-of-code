@@ -1,0 +1,35 @@
+D = 123
+label-1: {E: 0}
+	D &= 456
+	D = EQ(D, 72)
+	if not D do
+		goto label-1
+	D = 0
+label-6: {E: 5}
+	F = D | 65536
+	D = 5557974
+label-8: {E: 7}
+	C = F & 255
+	D += C
+	D &= 16777215
+	D *= 65899
+	D &= 16777215
+	C = GT(256, F)
+	if C do
+		goto label-28
+	C = 0
+label-18: {E: 17}
+	B = C + 1
+	B *= 256
+	B = GT(B, F)
+	if B do
+		goto label-26
+	C += 1
+	goto label-18
+label-26: {E: 25}
+	F = C
+	goto label-8
+label-28: {E: 27}
+	C = EQ(D, A)
+	if not C do
+		goto label-6

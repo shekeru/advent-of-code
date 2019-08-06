@@ -1,5 +1,5 @@
 import operator, functools
-with open('2018/Day 19/input.txt') as f:
+with open('2018/Day 21/input.txt') as f:
     ip, *feed = f.readlines()
 def compile(xs):
     inst, *ys = xs.split()
@@ -25,17 +25,11 @@ ip, ops = int(ip.split()[1]), {
     'eqri': (operator.eq, True, False), # eqri
     'eqrr': (operator.eq, True, True), # eqrr
 }; tape = [*map(compile, feed)]
-def factors(n):
-    return set(functools.reduce(list.__add__, ([i, n//i]
-        for i in range(1, int(n**0.5)+1) if not n%i)))
-def scan(i = 0):
-    state = [i]+[0]*5
+def silver_scan():
+    ticker, *state = [0]*7
     while state[ip] < len(tape):
-        inst = tape[state[ip]]
+        inst = tape[state[ip]]; ticker += 1
         if inst[:3] == ops['eqrr']:
-            a,b,c = inst[-3:]
-            return state[b if a is c else a]
-        execute(state, *inst)
-        state[ip] += 1
-print('Silver:', sum(factors(scan(0))))
-print('Gold:', sum(factors(scan(1))))
+            return state[inst[-2] or inst[-3]]
+        execute(state, *inst); state[ip] += 1
+print('Silver:', silver_scan())
