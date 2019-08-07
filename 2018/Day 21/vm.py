@@ -33,7 +33,7 @@ def scan_vm(gold = False):
             if not gold:
                 pass#return state[inst[-2]]
         print(ticks, state[1:])
-        if ticks > 10000:
+        if ticks > 2000:
             return
         execute(state, *inst)
         state[ip] += 1; ticks += 1

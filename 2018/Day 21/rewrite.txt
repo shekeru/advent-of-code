@@ -1,27 +1,23 @@
-D = 123
-loop // label-1
-  D &= 456
-  if D = EQ(D, 72)
-    break while
-D = 0
+#IP => D
 loop // label-6
   F = D | 65536
   D = 5557974
   loop // label-8
     C = F & 255
-    D += C
-    D &= 16777215
-    D *= 65899
-    D &= 16777215
+    eval(increase);
     if C = GT(256, F)
       if C = EQ(D, A)
         #program halt
       break while
-    C = 0;
-    loop // label-18
-      B = C + 1
-      B *= 256
-      if B = GT(B, F)
-        F = C
-        break while
-      C += 1
+    eval(faster);
+// Functions
+proc increase
+  D = (D + C) & limit
+  D = (D * k) & limit;
+proc faster
+  B = ceil((F + 1) / 256)
+  C = (B / 256) - 1
+  F = C
+// Constants
+limit = 16777215
+k = 65899
