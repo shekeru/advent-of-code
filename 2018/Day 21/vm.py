@@ -1,4 +1,4 @@
-import operator, functools
+import operator, functools, math
 with open('2018/Day 21/input.txt') as f:
     ip, *feed = f.readlines()
 def compile(xs):
@@ -26,16 +26,23 @@ ip, ops = int(ip.split()[1]), {
     'eqrr': (operator.eq, True, True), # eqrr
 }; tape = [*map(compile, feed)]
 def scan_vm(gold = False):
-    ticks, state = 0, [0]*6
+    ticks, state, seen = 0, [0]*6, []
     while state[ip] < len(tape):
         inst = tape[state[ip]]
         if inst[:3] == ops['eqrr']:
+            value = state[inst[-3]]
             if not gold:
-                pass#return state[inst[-2]]
-        print(ticks, state[1:])
-        if ticks > 2000:
-            return
+                return value
+            if value not in seen:
+                seen.append(value)
+            else:
+                return seen[-1]
+        if inst[:3] == ops['gtrr']:
+            state[1] = math.ceil((state[5] + 1) / 256)
+            state[2] = state[1] - 1
+            state[5] = state[2]
+            state[1] *= 256
         execute(state, *inst)
         state[ip] += 1; ticks += 1
 print('Silver:', scan_vm())
-#print('Gold:', scan_vm(True))
+print('Gold:', scan_vm(True))
