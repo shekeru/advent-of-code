@@ -8,7 +8,6 @@ main = do
   ln <- lines <$> readFile "input.txt"
   printf "Silver: %d\n" $ length (filter isNice ln)
   printf "Gold: %d\n" $ length (filter isNicer ln)
-
 -- Part Two
 isNicer :: String -> Bool
 isNicer xs = check (pair xs) && mid xs
