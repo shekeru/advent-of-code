@@ -43,7 +43,7 @@ main = parseFromFile (many events)
       (loop inst) (grid $ Gold 0)
 
 loop :: [Event] -> State [[Light]] Int
-loop [] = gets $ sum.map (sum.map value)
+loop [] = gets $ sum.map value.concat
 loop (Event f xb yb:xs) = do
   get >>= put.(elements (bounded xb) . elements (bounded yb) %~ f)
   loop xs where bounded vs x = x >= fst vs && x <= snd vs
@@ -56,7 +56,7 @@ events = do
   let number = read <$> many1 digit
   a <- space *> number
   b <- char ',' *> number <* space
-  c <- manyTill anyChar space *> number 
+  c <- manyTill anyChar space *> number
   d <- char ',' *> number <* endOfLine
   pure $ Event action (a, c) (b, d)
 
