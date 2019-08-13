@@ -21,7 +21,7 @@ sets = iterate next (S.fromList [3,7], 1, 0)
 next :: State -> State
 next (xs, u, v) = (xs', f' u, f' v) where
   xs' = foldl (S.|>) xs (if null ys then [0] else ys)
-  f' j = mod (j + 1 + ret j) $length xs'
+  f' j = mod (j + 1 + ret j) $ length xs'
   ys = digits 10 (ret u + ret v)
   ret = S.index xs
 
