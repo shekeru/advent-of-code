@@ -36,11 +36,11 @@ main :: IO ()
 main = parseFromFile (many events)
   "input.txt" >>= \case
   Left err -> print err
-  Right value -> do
+  Right inst -> do
     printf "Silver: %d\n" $ evalState
-      (loop value) (grid $ Silver False)
+      (loop inst) (grid $ Silver False)
     printf "Gold: %d\n" $ evalState
-      (loop value) (grid $ Gold 0)
+      (loop inst) (grid $ Gold 0)
 
 loop :: [Event] -> State [[Light]] Int
 loop [] = gets $ sum.map (sum.map value)
@@ -52,13 +52,13 @@ events :: Parser Event
 events = do
   statement <- choice (try.string <$> ["toggle", "turn off", "turn on"])
   let action = case last $ words statement of
-        "toggle" -> toggle; "off" -> off; "on" -> on
+        "toggle" -> toggle; "off" -> off; _ -> on
   let number = read <$> many1 digit
   a <- space *> number
-  b <- char ',' *> number
-  space *> manyTill anyChar space
-  c <- number; d <- char ',' *> number
-  endOfLine; pure $ Event action (a, c) (b, d)
+  b <- char ',' *> number <* space
+  c <- manyTill anyChar space *> number 
+  d <- char ',' *> number <* endOfLine
+  pure $ Event action (a, c) (b, d)
 
 grid :: Light -> [[Light]]
 grid f = mk (mk f) where
