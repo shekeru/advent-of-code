@@ -1,49 +1,52 @@
-{-# LANGUAGE TypeSynonymInstances, PartialTypeSignatures #-}
+{-# LANGUAGE PartialTypeSignatures, LambdaCase #-}
 module Main where
 
-import Text.Printf
-import Data.List.Lens
 import Control.Lens
 import Control.Monad.State
 import Text.Parsec hiding (State)
 import Text.Parsec.String
+import Text.Printf
 
-data Light = Off | On
-  deriving (Show, Eq, Enum)
-type Grid = [[Light]]
 type Coords = (Int, Int)
 data Event = Event (Light -> Light) Coords Coords
+data Light = Silver Bool | Gold Int
+  deriving (Show, Eq, Ord)
 
-instance Show Event where
-  show (Event f a b) = show a ++ show b
-
-class Toggle a where
+class Matrix a where
+  value :: a -> Int
   toggle :: a -> a
   off :: a -> a
   on :: a -> a
 
-instance Toggle Light where
-  toggle On = Off
-  toggle Off = On
-  off = const Off
-  on = const On
+instance Matrix Light where
+  -- Turn Off
+  off (Gold x) = Gold $ max 0 (x - 1)
+  off _ = Silver False
+  -- Turn On
+  on (Gold x) = Gold (x + 1)
+  on _ = Silver True
+  -- Toggle
+  toggle (Silver x) = Silver $ not x
+  toggle (Gold x) = Gold (x + 2)
+  -- Value
+  value (Silver x) = fromEnum x
+  value (Gold x) = x
 
 main :: IO ()
-main = do
-  ln <- parseFromFile (many events) "input.txt"
-  case ln of
-    Left err -> print err
-    Right value -> do
-      print $ evalState (loop value) grid
-  --printf "Silver: %d\n" $ length (filter isNice ln)
+main = parseFromFile (many events)
+  "input.txt" >>= \case
+  Left err -> print err
+  Right value -> do
+    printf "Silver: %d\n" $ evalState
+      (loop value) (grid $ Silver False)
+    printf "Gold: %d\n" $ evalState
+      (loop value) (grid $ Gold 0)
 
-loop :: [Event] -> State Grid Int
-loop [] = gets $ sum.map (sum.map fromEnum)
+loop :: [Event] -> State [[Light]] Int
+loop [] = gets $ sum.map (sum.map value)
 loop (Event f xb yb:xs) = do
-  current <- get
-  put $ current & elements (`elem` [fst xb..snd xb]) .
-        elements (`elem` [fst yb..snd yb]) %~ f
-  loop xs
+  get >>= put.(elements (bounded xb) . elements (bounded yb) %~ f)
+  loop xs where bounded vs x = x >= fst vs && x <= snd vs
 
 events :: Parser Event
 events = do
@@ -57,6 +60,6 @@ events = do
   c <- number; d <- char ',' *> number
   endOfLine; pure $ Event action (a, c) (b, d)
 
-grid :: Grid
-grid = mk (mk Off) where
+grid :: Light -> [[Light]]
+grid f = mk (mk f) where
   mk = replicate 1000
