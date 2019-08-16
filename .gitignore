@@ -1,6 +1,7 @@
-dist
+dist/
 *.hi
 *.o
 *.dyn_o
 *.dyn_hi
 .DS_Store
+.ionide/
