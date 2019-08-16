@@ -1,7 +1,15 @@
+build/
 dist/
 *.hi
 *.o
 *.dyn_o
 *.dyn_hi
 .DS_Store
+.vscode/
 .ionide/
+**/packages
+**/.paket/paket.exe
+paket-files/
+.fake
+obj/
+bin/
