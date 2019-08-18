@@ -5,5 +5,5 @@ Advent of Code is an Advent calendar of small programming puzzles for a variety 
 ## Calendar Progress
 - 2018: 21/25
 - 2017: 02/25
-- 2016: 01/25
+- 2016: 03/25
 - 2015: 08/25
