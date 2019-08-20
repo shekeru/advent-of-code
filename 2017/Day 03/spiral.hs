@@ -12,8 +12,10 @@ type Coords = (Int, Int)
 main :: IO()
 main = do
     let input = 361527
-    printf "Silver: %d\n" $ part1 input
-    printf "Gold: %d\n" $ part2 input
+    printf "Silver: %d\n"
+      $ part1 input
+    printf "Gold: %d\n"
+      $ part2 input
 
 part2 :: Int -> Int
 part2 x = head $ dropWhile (< x) spiral
