@@ -2,6 +2,7 @@
 module Main where
 
 import Text.Printf
+import qualified Data.Heap as HQ
 import qualified Data.Map.Strict as SM
 import System.IO.Unsafe
 import Control.Lens.TH
@@ -11,9 +12,9 @@ import Data.IORef
 import Data.List
 
 type Location = (Int, Int)
-type SearchQueue = [Position]
+type SearchQueue = (SM.Map (Location, Equipment) Int, HQ.MinHeap Position)
 data Equipment = Nil | Torch | Gear
-  deriving (Show, Eq, Enum, Bounded)
+  deriving (Show, Eq, Enum, Bounded, Ord)
 data Position = Position {
   _coords :: Location,
   _slot :: Equipment,
@@ -33,7 +34,8 @@ succ' x = if x == maxBound then
 depth :: Int
 depth = 3879
 target :: Location
-target = (8, 713)
+--target = (8, 713)
+target = (2, 10)
 
 -- Main Program
 main :: IO ()
@@ -56,24 +58,18 @@ silver = sum $ do
 -- Second Level
 g = iterate step start
 
-k = head $ head $ dropWhile (\xs ->
-  target /= (_coords $ head xs)) g
-
 start :: SearchQueue
-start = [Position (0, 0) Torch 0]
+start = (SM.empty, HQ.singleton (Position (0, 0) Torch 0))
 
 step :: SearchQueue -> SearchQueue
-step (x:xs) = unsafePerformIO $ do
-  let ys = filter past $ foldl insertOrd xs $ nb4 x
-  modifyIORef' seen $ SM.insertWith
-    min (_coords x) (_cost x); pure ys
-step mempty = mempty
-
-insertOrd :: SearchQueue -> Position -> SearchQueue
-insertOrd (x:xs) y
-  | _cost x > _cost y = y : x : xs
-  | otherwise = x : insertOrd xs y
-insertOrd [] y = [y]
+step (seen, hxq)
+  | HQ.isEmpty hxq = (seen, hxq)
+  | otherwise = do
+  let ([x], xs) = HQ.splitAt 1 hxq
+  let toContinue = case SM.lookup (_coords x, _slot x) seen of
+        Nothing -> True; Just v -> v <= _cost x
+  if toContinue then (SM.insertWith min (_coords x, _slot x) (_cost x)
+    seen, HQ.union xs $ HQ.fromList (nb4 x)) else (seen, xs)
 
 nb4 :: Position -> [Position]
 nb4 z@(Position (x, y) _ c) = concatMap (move z)
@@ -86,27 +82,9 @@ move (Position orig eq cost) z@(x, y) | invalid z = mempty
     \new -> Position z new $ cost + 8
 
 invalid :: Location -> Bool
-invalid (x,y) = x < 0 || y < 0 || x >
-  fst target + 4 || y > snd target + 4
-
-peek = unsafePerformIO $ do
-  cache <- readIORef seen
-  return (cache SM.! target)
-
-past :: Position -> Bool
-past x@(Position z _ c) = unsafePerformIO $ do
-  cache <- readIORef seen
-  pure $ case SM.lookup z cache of
-        Just v -> v > c; Nothing -> True
-
-seen :: IORef (SM.Map Location Int)
-seen = unsafePerformIO (newIORef SM.empty)
-{-# NOINLINE seen #-}
-
--- ref :: Position -> Position
--- ref pos = unsafePerformIO $ modifyIORef' routes
---   (SM.insertWith f (_coords pos) pos) >> pure pos where
---     f n o = if _cost o <= _cost n then o else n
+invalid (x,y) = x < 0 || y < 0
+  -- || x >
+  --fst target + 8 || y > snd target + 8
 
 -- Shared Functions
 
