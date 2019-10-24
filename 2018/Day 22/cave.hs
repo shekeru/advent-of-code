@@ -4,12 +4,16 @@ module Main where
 import Text.Printf
 import qualified Data.PQueue.Min as PQ
 import qualified Data.Map.Strict as SM
+import qualified Data.Set as SS
+import Debug.Trace
 import System.IO.Unsafe
 import Data.Either
 import Data.IORef
 
 type Location = (Int, Int)
-type SearchQueue = (SM.Map (Location, Equipment) Int, PQ.MinQueue Position)
+type Visited = SS.Set (Location, Equipment)
+type Queue = PQ.MinQueue Position
+type SearchQueue = (Visited, Queue)
 data Equipment = Nil | Torch | Gear
   deriving (Show, Eq, Enum, Bounded, Ord)
 data Position = Position {
@@ -47,18 +51,16 @@ silver = sum $ do
 
 -- Second Level
 start :: SearchQueue
-start = (SM.empty, PQ.singleton (Position (0, 0) Torch 0))
+start = (SS.empty, PQ.singleton (Position (0, 0) Torch 0))
 
 step :: Either SearchQueue Int -> Either SearchQueue Int
-step (Left (seen, hxq))
-  | PQ.null hxq = Left (seen, hxq)
-  | SM.member (target, Torch) seen = Right $ seen SM.! (target, Torch)
-  | otherwise = do
+step (Left (seen, hxq)) = do
   let (x, xs) = PQ.deleteFindMin hxq
-  let toContinue = case SM.lookup (_coords x, _slot x) seen of
-        Nothing -> True; Just v -> v > _cost x
-  Left $ if toContinue then (SM.insert (_coords x, _slot x) (_cost x)
-    seen, PQ.union xs $ PQ.fromList $ nb4 x) else (seen, xs)
+  if (_coords (traceShowId x) == target) && (_slot x == Torch)
+    then Right (_cost x) else do
+      let toContinue = SS.notMember (_coords x, _slot x) seen
+      Left $ if toContinue then (SS.insert (_coords x, _slot x) seen,
+        foldl (flip PQ.insert) xs $ nb4 x) else (seen, xs)
 step (Right int) = Right int
 
 nb4 :: Position -> [Position]
@@ -72,8 +74,7 @@ move (Position orig eq cost) z@(x, y) | invalid z = mempty
     (level orig)) [pred' eq, succ' eq]) (cost + 7)]
 
 invalid :: Location -> Bool
-invalid (x,y) = x < 0 || y < 0 || x >
-  fst target + 49 || y > snd target + 49
+invalid (x,y) = x < 0 || y < 0
 
 -- Shared Functions
 level :: Location -> Terrain
