@@ -3,7 +3,7 @@ def ints(s):
     return list(map(int, re.findall(r"-?\d+", s)))  # thanks mserrano!
 inp = """
 depth: 3879
-target: 8, 713
+target: 20, 20
 """.strip()
 lines = inp.splitlines()
 depth = ints(lines[0])[0]
