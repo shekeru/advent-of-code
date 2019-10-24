@@ -2,17 +2,14 @@
 module Main where
 
 import Text.Printf
-import qualified Data.Heap as HQ
+import qualified Data.PQueue.Min as PQ
 import qualified Data.Map.Strict as SM
 import System.IO.Unsafe
-import Control.Lens.TH
--- import Control.Monad
--- import Control.Lens
+import Data.Either
 import Data.IORef
-import Data.List
 
 type Location = (Int, Int)
-type SearchQueue = (SM.Map (Location, Equipment) Int, HQ.MinHeap Position)
+type SearchQueue = (SM.Map (Location, Equipment) Int, PQ.MinQueue Position)
 data Equipment = Nil | Torch | Gear
   deriving (Show, Eq, Enum, Bounded, Ord)
 data Position = Position {
@@ -20,7 +17,6 @@ data Position = Position {
   _slot :: Equipment,
   _cost :: Int
 } deriving (Show, Eq)
-$(makeLenses ''Position)
 type Terrain = Int
 
 instance Ord Position where
@@ -34,20 +30,14 @@ succ' x = if x == maxBound then
 depth :: Int
 depth = 3879
 target :: Location
---target = (8, 713)
-target = (2, 10)
+target = (8, 713)
 
 -- Main Program
 main :: IO ()
 main = do
   printf "Silver: %d\n" silver
-  -- forM_ [Torch, Gear, Free] $ \c -> do
-  --   forM_ [0..snd target] $ \y -> do
-  --     forM_ [0..fst target] $ \x ->
-  --        printf "%d " $ cost c $ level (x, y)
-  --     putStr "\n"
-  --   putStr "\n"
-  --printf "Gold: %d\n" silver
+  let ys = filter isRight $ iterate step (Left start)
+  print $ head ys
 
 silver :: Int
 silver = sum $ do
@@ -56,38 +46,36 @@ silver = sum $ do
     (a, b) = target
 
 -- Second Level
-g = iterate step start
-
 start :: SearchQueue
-start = (SM.empty, HQ.singleton (Position (0, 0) Torch 0))
+start = (SM.empty, PQ.singleton (Position (0, 0) Torch 0))
 
-step :: SearchQueue -> SearchQueue
-step (seen, hxq)
-  | HQ.isEmpty hxq = (seen, hxq)
+step :: Either SearchQueue Int -> Either SearchQueue Int
+step (Left (seen, hxq))
+  | PQ.null hxq = Left (seen, hxq)
+  | SM.member (target, Torch) seen = Right $ seen SM.! (target, Torch)
   | otherwise = do
-  let ([x], xs) = HQ.splitAt 1 hxq
+  let (x, xs) = PQ.deleteFindMin hxq
   let toContinue = case SM.lookup (_coords x, _slot x) seen of
-        Nothing -> True; Just v -> v <= _cost x
-  if toContinue then (SM.insertWith min (_coords x, _slot x) (_cost x)
-    seen, HQ.union xs $ HQ.fromList (nb4 x)) else (seen, xs)
+        Nothing -> True; Just v -> v > _cost x
+  Left $ if toContinue then (SM.insert (_coords x, _slot x) (_cost x)
+    seen, PQ.union xs $ PQ.fromList $ nb4 x) else (seen, xs)
+step (Right int) = Right int
 
 nb4 :: Position -> [Position]
 nb4 z@(Position (x, y) _ c) = concatMap (move z)
-  [(x+1, y), (x-1, y), (x, y-1), (x, y+1)]
+  [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
 
 move :: Position -> Location -> [Position]
 move (Position orig eq cost) z@(x, y) | invalid z = mempty
   | eq /= toEnum (level z) = [Position z eq (cost+1)]
-  | otherwise = (<$> [pred' eq, succ' eq]) $
-    \new -> Position z new $ cost + 8
+  | otherwise = [Position orig (head $ filter (/= toEnum
+    (level orig)) [pred' eq, succ' eq]) (cost + 7)]
 
 invalid :: Location -> Bool
-invalid (x,y) = x < 0 || y < 0
-  -- || x >
-  --fst target + 8 || y > snd target + 8
+invalid (x,y) = x < 0 || y < 0 || x >
+  fst target + 49 || y > snd target + 49
 
 -- Shared Functions
-
 level :: Location -> Terrain
 level z = mod (erode z) 3
 
