@@ -3,7 +3,7 @@ def ints(s):
     return list(map(int, re.findall(r"-?\d+", s)))  # thanks mserrano!
 inp = """
 depth: 3879
-target: 20, 20
+target: 8, 400
 """.strip()
 lines = inp.splitlines()
 depth = ints(lines[0])[0]
@@ -36,11 +36,9 @@ queue = [(0, 0, 0, 1)] # (minutes, x, y, cannot)
 best = dict() # (x, y, cannot) : minutes
 
 target = (tx, ty, 1)
-j = 0
 while queue:
     minutes, x, y, cannot = heapq.heappop(queue)
     best_key = (x, y, cannot)
-    j += 1
     if best_key in best and best[best_key] <= minutes:
         continue
     best[best_key] = minutes

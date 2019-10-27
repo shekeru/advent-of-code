@@ -64,7 +64,7 @@ getTargetTime vis (q, els) =
     let Just (region@((time, (coord, t))), q') = Q.minView q
         neighbours = getNeighbours coord
     in  if   coord == target then time
-        else if notMember (coord,t) vis
+        else if notMember (coord,t) (traceShow (length vis) vis)
                then getTargetTime (S.insert (coord,t) vis) $ foldl' (insertCoord region) (q', els) neighbours
                else getTargetTime vis (q', els)
     where
