@@ -12,6 +12,7 @@ import Data.Either
 import Data.IORef
 
 type Location = (Int, Int)
+type World = SM.Map Location Int
 type Visited = SS.Set (Location, Equipment)
 type Queue = PQ.MinQueue Position
 type SearchQueue = (Visited, Queue)
@@ -89,9 +90,9 @@ erode z = unsafePerformIO $ do
     Just value -> return value
     Nothing -> do
       putStrLn $ "Stuck in IO: " ++ show z
-      modifyIORef' world $ SM.insert z
-        (mod (geoIx z + depth) 20183)
-      pure $ erode z
+      let val = mod (geoIx z + depth) 20183
+      modifyIORef' world $ SM.insert z val
+      return val
 
 geoIx :: Location -> Int
 geoIx z@(x, y)
