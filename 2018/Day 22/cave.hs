@@ -1,7 +1,8 @@
-{-# LANGUAGE PartialTypeSignatures, TemplateHaskell  #-}
+{-# LANGUAGE PartialTypeSignatures #-}
 module Main where
 
 import Text.Printf
+import Data.Foldable (foldl')
 import qualified Data.PQueue.Min as PQ
 import qualified Data.Map.Strict as SM
 import qualified Data.Set as SS
@@ -15,7 +16,7 @@ type Visited = SS.Set (Location, Equipment)
 type Queue = PQ.MinQueue Position
 type SearchQueue = (Visited, Queue)
 data Equipment = Nil | Torch | Gear
-  deriving (Show, Eq, Enum, Bounded, Ord)
+  deriving (Show, Eq, Enum, Ord)
 data Position = Position {
   _coords :: Location,
   _slot :: Equipment,
@@ -24,12 +25,9 @@ data Position = Position {
 type Terrain = Int
 
 instance Ord Position where
-  x <= y = _cost x <= _cost y
-
-pred' x = if x == minBound then
-  maxBound else pred x
-succ' x = if x == maxBound then
-  minBound else succ x
+  x <= y = qval x <= qval y where
+    qval (Position (x,y) eq c) = c + abs
+      (fst target - x) + abs (snd target - y)
 
 depth :: Int
 depth = 3879
@@ -40,8 +38,7 @@ target = (8, 713)
 main :: IO ()
 main = do
   printf "Silver: %d\n" silver
-  let ys = filter isRight $ iterate step (Left start)
-  print $ head ys
+  printf "Gold: %d\n" (step start)
 
 silver :: Int
 silver = sum $ do
@@ -51,30 +48,36 @@ silver = sum $ do
 
 -- Second Level
 start :: SearchQueue
-start = (SS.empty, PQ.singleton (Position (0, 0) Torch 0))
+start = (SS.empty, PQ.singleton
+  (Position (0, 0) Torch 0))
 
-step :: Either SearchQueue Int -> Either SearchQueue Int
-step (Left (seen, hxq)) = do
-  let (x, xs) = PQ.deleteFindMin hxq
-  if (_coords (traceShowId x) == target) && (_slot x == Torch)
-    then Right (_cost x) else do
-      let toContinue = SS.notMember (_coords x, _slot x) seen
-      Left $ if toContinue then (SS.insert (_coords x, _slot x) seen,
-        foldl (flip PQ.insert) xs $ nb4 x) else (seen, xs)
-step (Right int) = Right int
+step :: SearchQueue -> Int
+step (seen, hxq) = let (x, xs) = PQ.deleteFindMin hxq in if
+  (_coords x == target) && (_slot x == Torch) then _cost x else step $ traceShow (PQ.size xs, x) $ if
+    SS.notMember (_coords x, _slot x) seen then (SS.insert (_coords x, _slot x) seen,
+      foldl' pqIns xs $ nb4 x) else (seen, xs) where pqIns obj a = PQ.insert a obj
 
 nb4 :: Position -> [Position]
 nb4 z@(Position (x, y) _ c) = concatMap (move z)
-  [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
+  [(x+1, y), (x-1, y), (x, y-1), (x, y+1)]
 
 move :: Position -> Location -> [Position]
 move (Position orig eq cost) z@(x, y) | invalid z = mempty
-  | eq /= toEnum (level z) = [Position z eq (cost+1)]
-  | otherwise = [Position orig (head $ filter (/= toEnum
-    (level orig)) [pred' eq, succ' eq]) (cost + 7)]
+  | z == target = pure $ Position z Torch $
+    cost + if eq == Torch then 1 else 8
+  | eq /= toEnum (level z) = [Position z eq (cost + 1)]
+  | otherwise = [Position z (toEnum $ morph
+    (level z) $ level orig) (cost + 8)]
+
+morph :: Int -> Int -> Int
+morph 0 1 = 2; morph 1 0 = 2
+morph 0 2 = 1; morph 2 0 = 1
+morph 1 2 = 0; morph 2 1 = 0
 
 invalid :: Location -> Bool
 invalid (x,y) = x < 0 || y < 0
+  || x > (fst target + 32)
+  || y > (snd target + 32)
 
 -- Shared Functions
 level :: Location -> Terrain
