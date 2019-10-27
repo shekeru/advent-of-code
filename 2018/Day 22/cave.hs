@@ -52,10 +52,10 @@ start = (SS.empty, PQ.singleton
   (Position (0, 0) Torch 0))
 
 step :: SearchQueue -> Int
-step (seen, hxq) = let (x, xs) = PQ.deleteFindMin hxq in if
-  (_coords x == target) && (_slot x == Torch) then _cost x else step $ traceShow (PQ.size xs, x) $ if
+step (seen, hxq) = let (x, xs) = traceShow ("Visited: " ++ show (length seen)) $ PQ.deleteFindMin hxq in if
+  (_coords x == target) && (_slot x == Torch) then _cost x else step $ if
     SS.notMember (_coords x, _slot x) seen then (SS.insert (_coords x, _slot x) seen,
-      foldl' pqIns xs $ nb4 x) else (seen, xs) where pqIns obj a = PQ.insert a obj
+      foldl' pqIns xs $ nb4 $ traceShowId x) else (seen, xs) where pqIns obj a = PQ.insert a obj
 
 nb4 :: Position -> [Position]
 nb4 z@(Position (x, y) _ c) = concatMap (move z)
@@ -75,9 +75,8 @@ morph 0 2 = 1; morph 2 0 = 1
 morph 1 2 = 0; morph 2 1 = 0
 
 invalid :: Location -> Bool
-invalid (x,y) = x < 0 || y < 0
-  || x > (fst target + 32)
-  || y > (snd target + 32)
+invalid (x,y) = x < 0 || y < 0 ||
+  x > fst target + 52
 
 -- Shared Functions
 level :: Location -> Terrain
@@ -89,6 +88,7 @@ erode z = unsafePerformIO $ do
   case SM.lookup z cache of
     Just value -> return value
     Nothing -> do
+      putStrLn $ "Stuck in IO: " ++ show z
       modifyIORef' world $ SM.insert z
         (mod (geoIx z + depth) 20183)
       pure $ erode z
