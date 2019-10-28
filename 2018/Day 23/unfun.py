@@ -9,15 +9,13 @@ def m_dist(xs, ys):
 amnt = [pts for pts in sys if m_dist(st, pts) <= st[3]]
 # Fucking Part 2 Garbage
 def solved():
-    values, lowest = set(), math.inf
+    values, limit = set(), math.inf
     for ys in sys:
         dist = m_dist(3*[0], ys)
         if dist > ys[3]:
-            lower = dist + ys[3]
             values.add(dist - ys[3])
-            if lower < lowest:
-                lowest = lower
-    return max(x for x in values if x < lowest)
+        limit = min(limit, dist + ys[3])
+    return max(x for x in values if x < limit)
 # Printing
 print("Silver:", len(amnt))
 print("Gold:", solved())
