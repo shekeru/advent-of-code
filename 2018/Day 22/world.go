@@ -2,8 +2,8 @@ package main
 
 type Equipment int
 const (
-  Torch = iota
-  Nothing
+  Nil = iota
+  Torch
   Gear
 )
 

@@ -13,8 +13,7 @@ type Movement struct {
 
 type SearchQueue[] *Movement
 
-func (pq *SearchQueue) push(x int, y int,
-    eq Equipment, z int) {
+func (pq *SearchQueue) push(x int, y int, eq Equipment, z int) {
   heap.Push(pq, &Movement{Position{
     Location{x, y}, eq}, z})
 }
