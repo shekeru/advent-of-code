@@ -3,7 +3,7 @@ import ("fmt"
   "container/heap")
 
 func main() {
-  world := mkWorld(3879, 10, 10)
+  world := mkWorld(3879, 8, 713)
 	fmt.Printf("Silver: %d\n",
      world.Silver())
   fmt.Printf("Gold: %d\n",
@@ -15,13 +15,13 @@ func (wp World) Gold() int {
   var composite = Position{wp.target, Torch}
   // Search for Route, While Queued
   for len(wp.queue) > 0 {
-    item := heap.Pop(&wp.queue).(*Movement); pos :=
-      item.entry; val, ok := wp.visited[pos]
-    // Update Visited
-    if ok && val <= item.minutes {
-      continue
-    }; wp.visited[item.entry] = item.minutes
-      fmt.Printf("Item: %d\n", *item)
+    item := heap.Pop(&wp.queue).(*Movement)
+    // Check for Visit
+    pos := item.entry; if val, ok :=
+      wp.visited[pos]; ok && val <=
+        item.minutes {continue}
+    // Record Visit
+    wp.visited[pos] = item.minutes
     // Check for Target
     if item.entry == composite {
       return item.minutes
@@ -33,22 +33,21 @@ func (wp World) Gold() int {
         // Select Out Invalids
         if (next.x < 0 || next.y < 0) {
           continue
-        } else if (wp.target == next) {
-          var adj = item.minutes + 1
-          if (pos.tool != Torch) {
-            adj += 7
-          }; wp.queue.push(next.x, next.y,
-            Torch, adj)
         } else if (wp.level(next) !=
             Terrain(pos.tool)) {
           wp.queue.push(next.x, next.y,
             pos.tool, item.minutes + 1)
-        } else {
-          wp.queue.push(next.x, next.y,
-            wp.swapTool(next, pos.coords),
-          item.minutes + 8)
+        } else { for i := 0; i <= 2; i++ {
+          switch (Terrain(i)) {
+            case wp.level(pos.coords):
+              continue
+            case wp.level(next):
+              continue
+          }; wp.queue.push(next.x, next.y,
+            Equipment(i), item.minutes + 8)
+          }
         }
-      };
+      }
   }; return -1
 }
 
@@ -58,13 +57,4 @@ func (wp World) Silver() int {
     for y := 0; y <= wp.target.y; y++ {
       result += int(wp.level(Location{x, y}))
   }}; return result
-}
-
-func (wp World) swapTool(a, b Location) Equipment {
-  for i := 0; i <= 2; i++ {
-    if (int(wp.level(a)) != i &&
-      int(wp.level(b)) != i) {
-        return Equipment(i)
-    }
-  }; return Torch
 }
