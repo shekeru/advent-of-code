@@ -4,41 +4,64 @@ module Input where
 import Text.Parsec hiding (State)
 import Text.Parsec.String
 
+type Mods = (String, [String])
+type Section = (String, [Group])
 data Group = Group {
     _units :: Int,
-    _hp :: Int,
-    _immune :: [String],
-    _weak :: [String],
-    _dmg :: Int,
-    _aspect :: String,
-    _order:: Int
+    _hitPoints :: Int,
+    _immunities :: [String],
+    _weaknesses :: [String],
+    _attackDamage :: Int,
+    _attackType :: String,
+    _initiative :: Int
 } deriving (Show)
 
-getFile :: IO _
-getFile = parseFromFile (line)
+getFile :: IO [Section]
+getFile = parseFromFile (section `sepBy` endOfLine)
   "input.txt" >>= \case
   Left err -> print err >> pure []
-  Right inst -> pure [inst]
+  Right inst -> pure inst
+
+section :: Parser Section
+section = do
+  system <- chew (char ':') <* endOfLine
+  groups <- many1 (line <* endOfLine)
+  return (system, groups)
+
+publish :: [Mods] -> Group -> Parser Group
+publish (("immune", x) : xs) group =
+  publish xs $ group {_immunities = x}
+publish (("weak", x) : xs) group =
+  publish xs $ group {_weaknesses = x}
+publish [] group = return group
 
 line :: Parser Group
 line = do
     units <- number
-    hp <- burn *> 
-        number
-    dmg <- burn *> 
-        number
-    aspect <- space *>
-        many1 letter
-    order <- burn *> 
-        number
-    pure $ Group units hp [] [] 
-        dmg aspect order
+    hp <- (digit !!! number)
+      <* string " hit points "
+    mods <- option [] typeInfo
+    dmg <- digit !!! number
+    aspect <- space *> many1 letter
+    order <- digit !!! number
+    publish mods $ Group units hp []
+      [] dmg aspect order
 
-burn :: Parser String
-burn = chew digit
+typeInfo :: Parser [Mods]
+typeInfo = between (char '(') (char ')')
+  (types `sepBy` string "; ")
+
+types :: Parser Mods
+types = do
+  modify <- many1 letter <* string " to "
+  what <- many1 letter `sepBy` string ", "
+  pure (modify, what)
 
 number :: Parser Int
 number = read <$> many1 digit
 
-chew :: _ -> _
-chew = manyTill anyChar.lookAhead 
+(!!!) :: Parser end -> Parser w -> Parser w
+(!!!) cmp p = chew (lookAhead cmp) *> p
+
+chew :: Parser end -> Parser String
+chew = manyTill anyChar
