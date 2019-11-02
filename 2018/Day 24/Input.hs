@@ -3,9 +3,9 @@ module Input where
 
 import Text.Parsec hiding (State)
 import Text.Parsec.String
+import Data.Function
 
 type Mods = (String, [String])
-type Section = (String, [Group])
 data Group = Group {
     _units :: Int,
     _hitPoints :: Int,
@@ -13,20 +13,25 @@ data Group = Group {
     _weaknesses :: [String],
     _attackDamage :: Int,
     _attackType :: String,
-    _initiative :: Int
-} deriving (Show)
+    _initiative :: Int,
+    _system :: String
+} deriving (Show, Eq)
 
-getFile :: IO [Section]
-getFile = parseFromFile (section `sepBy` endOfLine)
-  "input.txt" >>= \case
+instance Ord Group where
+  (<=) = on (<=) calc where
+    calc a = _initiative a + 40
+      * _units a * _attackDamage a
+
+getFile :: IO [Group]
+getFile = parseFromFile (section `sepBy`
+  endOfLine) "input.txt" >>= \case
   Left err -> print err >> pure []
-  Right inst -> pure inst
+  Right inst -> pure $ concat inst
 
-section :: Parser Section
+section :: Parser [Group]
 section = do
   system <- chew (char ':') <* endOfLine
-  groups <- many1 (line <* endOfLine)
-  return (system, groups)
+  many1 (line system <* endOfLine)
 
 publish :: [Mods] -> Group -> Parser Group
 publish (("immune", x) : xs) group =
@@ -35,8 +40,8 @@ publish (("weak", x) : xs) group =
   publish xs $ group {_weaknesses = x}
 publish [] group = return group
 
-line :: Parser Group
-line = do
+line :: String -> Parser Group
+line system = do
     units <- number
     hp <- (digit !!! number)
       <* string " hit points "
@@ -45,7 +50,7 @@ line = do
     aspect <- space *> many1 letter
     order <- digit !!! number
     publish mods $ Group units hp []
-      [] dmg aspect order
+      [] dmg aspect order system
 
 typeInfo :: Parser [Mods]
 typeInfo = between (char '(') (char ')')
