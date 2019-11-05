@@ -3,7 +3,6 @@ module Input where
 
 import Text.Parsec hiding (State)
 import Text.Parsec.String
-import Data.Function
 
 type Mods = (String, [String])
 data Group = Group {
@@ -16,11 +15,6 @@ data Group = Group {
     _initiative :: Int,
     _system :: String
 } deriving (Show, Eq)
-
-instance Ord Group where
-  (<=) = on (<=) calc where
-    calc a = _initiative a + 40
-      * _units a * _attackDamage a
 
 getFile :: IO [Group]
 getFile = parseFromFile (section `sepBy`
