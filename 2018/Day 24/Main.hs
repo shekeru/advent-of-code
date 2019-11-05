@@ -1,7 +1,10 @@
 module Main where
 
+import Debug.Trace
+
 import Control.Monad
 import Data.Function
+import Data.Maybe
 import Data.List
 import Input
 
@@ -21,7 +24,13 @@ main = do
     groups <- sortBy atkOrder
       <$> Input.getFile
     forM_ (_battles $ matched groups) $ \x ->
-      print $ map _units [fst x, snd x]
+      print (_units $ fst x, _units $ snd x)
+
+conduct :: Offense -> [Group]
+conduct (Offense bxs rxs) = reverse $ foldl execute rxs bxs where
+  execute rxs' (atk, def) = def {_units = _units def
+    - div (trueDmg atk' def) (_hitPoints def)} : rxs'
+    where atk' = fromMaybe atk (find (atk ==) rxs')
 
 matched :: [Group] -> Offense
 matched groups = do
@@ -37,23 +46,19 @@ assign atk def = foldl selection
 selection :: Offense -> Group -> Offense
 selection rets@(Offense bxs []) _ = rets
 selection (Offense bxs rxs) actor = let
-  ideal = minimumBy (targOrder actor) rxs in Offense
+  ideal = maximumBy (targOrder actor) rxs in Offense
     ((actor, ideal) : bxs) (delete ideal rxs)
 
 targOrder :: Group -> Group -> Group -> Ordering
-targOrder atk = on (flip compare) calc where
+targOrder atk = on compare calc where
   calc x = _initiative x + 40 * trueDmg atk x
 
 trueDmg :: Group -> Group -> Int
 trueDmg atk def
   | _attackType atk `elem` _immunities def = 0
   | _attackType atk `elem` _weaknesses def = 2 * dmg
-  | otherwise = dmg where dmg = _attackDamage atk * _units atk
+  | otherwise = dmg where
+    dmg = traceShow (_units atk, _units def, _attackDamage atk * _units atk) _attackDamage atk * _units atk
 
 atkOrder :: Group -> Group -> Ordering
 atkOrder = on (flip compare) _initiative
-
--- selOrder :: Group -> Group -> Ordering
--- selOrder = on (flip compare) calc where
---   calc x = _initiative x + 40 *
---     (_units x * _attackDamage x)
