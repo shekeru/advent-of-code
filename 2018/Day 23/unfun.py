@@ -1,7 +1,7 @@
 import re, math
 with open('2018/Day 23/input.txt') as f:
     parse = lambda x: [*map(int, re.findall(r'-?\d+', x))]
-    sys = [*map(parse, f.read().splitlines())]
+    sys = [*map(parse, f.readlines())]
 st = max(sys, key = lambda pt: pt[3])
 def m_dist(xs, ys):
     solve = lambda x, y: abs(y - x)
@@ -19,4 +19,3 @@ def solved():
 # Printing
 print("Silver:", len(amnt))
 print("Gold:", solved())
-
