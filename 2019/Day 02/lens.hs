@@ -4,7 +4,6 @@ module Lens where
 import Data.Function
 import Control.Lens hiding (re)
 import Text.RE.TDFA.String
-import Data.List.Lens
 import Text.Printf
 
 main :: IO()
