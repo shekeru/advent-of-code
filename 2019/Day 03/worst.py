@@ -6,8 +6,7 @@ with open("2019/Day 03/input.txt") as f:
         for xs in f.readlines()]
 
 def abg(PTS):
-    def dtr(a, b):
-        return (a[0] * b[1]) - (a[1] * b[0])
+    dtr = lambda a,b: (a[0] * b[1]) - (a[1] * b[0])
     xdf = lambda v: abs(v[1].real - v[0].real)
     ydf = lambda v: abs(v[1].imag - v[0].imag)
     xds, yds = [*map(xdf, PTS)], [*map(ydf, PTS)]
@@ -19,7 +18,6 @@ def abg(PTS):
             crn = [yss[ll][pts[ll].index(pp) - 1] for ll, pp in enumerate(PTS)]
             offset = abs(Y0.real - X0.real) + abs(X1.imag - Y0.imag)
             return mdt(complex(Y0.real, X1.imag)), sum(crn) + offset
-
 
 acc = lambda xs: [*accumulate(xs)]
 mdt = lambda x: abs(x.real) + abs(x.imag)
