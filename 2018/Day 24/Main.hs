@@ -14,7 +14,7 @@ data Offense = Offense {
 
 instance Semigroup Offense where
   xs <> ys = Offense
-    (sorted $ on (++) _battles xs ys)
+    (sorted $on (++) _battles xs ys)
     (on (++) _remaining xs ys) where
       sorted = sortBy (on orderAtk fst)
 
@@ -23,36 +23,25 @@ main = do
     groups <- Input.getFile
     printf "Silver: %d\n"
       (solve battle groups)
-    -- forM_ (take 20 $ iterate (conduct.matched) groups) $ \ys -> do
-    --   print $ sort $ map _units ys
     printf "Gold: %d\n"
       (solve survive groups)
-    where solve fn xs = sum $ map _units (fn xs)
-
-    -- forM_ (_battles $ matched groups ) $ \x ->
-    --   print (_units $ fst x, _units $ snd x)
-    -- forM_ (take 60 $ iterate (conduct.matched) $ bxs !! 1570) $ \ys -> do
-    --   print $ map _units ys
-    -- printf "Gold: %d\n"
-    -- forM_ ys print
-    -- forM_ (_battles (matched $ bxs !! 1570)) $ \x ->
-    --   print (_units $ fst x, _units $ snd x)
-    -- forM_ (conduct $ matched ys) print
+    where solve fn = sum.map _units.fn
 
 survive :: [Group] -> [Group]
 survive = head.dropWhile fn.map battle.iterate
-  (map boost) where fn = ("Infection" ==)._system.head
+  (map boost) where fn = elem "Infection".map _system
 
 boost :: Group -> Group
 boost x = if "Infection" /= _system x then
   x{_attackDamage = _attackDamage x + 1} else x
 
 battle :: [Group] -> [Group]
-battle = head.dropWhile fn.iterate (conduct.matched)
-  where fn = (>1).length.nub.map _system
+battle = fwds.iterate (conduct.matched) where
+  fwds (x:y:xs) = if on (==) (map _units)
+    y x then y else fwds xs
 
 conduct :: Offense -> [Group]
-conduct (Offense bxs rxs) = prepare $ foldl execute rxs bxs where
+conduct (Offense bxs rxs) = prepare $foldl execute rxs bxs where
   execute rxs' (atk, def) = (if _units atk' <= 0 then def else def{_units
       = _units def - div (trueDmg atk' def) (_hitPoints def)}) : rxs'
     where atk' = fromMaybe atk (find (atk ==) rxs')
