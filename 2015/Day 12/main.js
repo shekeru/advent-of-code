@@ -6,8 +6,7 @@ class Counter {
     this.omit = omit
     this.value = 0
     this.iter(js)
-  }
-  iter(xvs) {
+  } iter(xvs) {
     switch (typeof xvs) {
       case 'number':
         this.value += xvs
