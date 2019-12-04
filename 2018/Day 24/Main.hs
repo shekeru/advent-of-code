@@ -3,6 +3,7 @@ module Main where
 import Text.Printf
 import Control.Monad
 import Data.Function
+import Data.Ord
 import Data.Maybe
 import Data.List
 import Input
@@ -16,23 +17,32 @@ instance Semigroup Offense where
   xs <> ys = Offense
     (sorted $ on (++) _battles xs ys)
     (on (++) _remaining xs ys) where
-      sorted = sortBy (on atkOrder fst)
+      sorted = sortBy (on (flip orderAtk) fst)
 
 main :: IO()
 main = do
-    groups <- sortBy atkOrder
-      <$> Input.getFile
+    groups <- Input.getFile
     printf "Silver: %d\n"
-      (part1 groups)
+      (sum $ map _units $ battle groups)
+    let bxs = iterate (map boost) groups
+    forM_ (take 60 $ iterate (conduct.matched) $ bxs !! 1570) $ \ys -> do
+      print $ map _units ys
+    -- printf "Gold: %d\n"
     -- forM_ ys print
-    -- forM_ (_battles $ matched ys) $ \x ->
+    -- forM_ (_battles (matched $ bxs !! 1570)) $ \x ->
     --   print (_units $ fst x, _units $ snd x)
     -- forM_ (conduct $ matched ys) print
 
-part1 :: [Group] -> Int
-part1 = sum.map _units.head.battle where
-  battle = dropWhile fn.iterate (conduct.matched)
-  fn = (>1).length.nub.map _system
+-- nigs = map battle.
+--   where fn = ("Infection" ==)._system.head
+
+boost :: Group -> Group
+boost x = if "Infection" /= _system x then
+  x{_attackDamage = _attackDamage x + 1} else x
+
+battle :: [Group] -> [Group]
+battle = head.dropWhile fn.iterate (conduct.matched)
+  where fn = (>1).length.nub.map _system
 
 conduct :: Offense -> [Group]
 conduct (Offense bxs rxs) = prepare $ foldl execute rxs bxs where
@@ -49,19 +59,14 @@ matched groups = do
       where cmp x = "Infection" /= _system x
 
 assign :: [Group] -> [Group] -> Offense
-assign atk def = foldl selection
-  (Offense [] def) (sortBy selOrder atk)
+assign atk def = foldl selection (Offense [] def)
+  (sortBy (flip orderEff) atk)
 
 selection :: Offense -> Group -> Offense
 selection rets@(Offense bxs []) _ = rets
 selection (Offense bxs rxs) actor = let
-  ideal = maximumBy (targOrder actor) rxs in Offense
+  ideal = maximumBy (oTarget actor) rxs in Offense
     ((actor, ideal) : bxs) (delete ideal rxs)
-
-targOrder :: Group -> Group -> Group -> Ordering
-targOrder atk = on compare calc where
-  calc x = _initiative x + 21 *
-    dmg x + 2100 * trueDmg atk x
 
 trueDmg :: Group -> Group -> Int
 trueDmg atk def
@@ -69,12 +74,14 @@ trueDmg atk def
   | _attackType atk `elem` _weaknesses def = 2 * dmg atk
   | otherwise = dmg atk
 
+oTarget :: Group -> Group -> Group -> Ordering
+oTarget atk = comparing (trueDmg atk) <> orderEff
+
 dmg :: Group -> Int
 dmg x = _attackDamage x * _units x
 
-atkOrder :: Group -> Group -> Ordering
-atkOrder = on (flip compare) _initiative
+orderEff :: Group -> Group -> Ordering
+orderEff = comparing dmg <> orderAtk
 
-selOrder :: Group -> Group -> Ordering
-selOrder = on (flip compare) calc where
-  calc x = _initiative x + 21 * dmg x
+orderAtk :: Group -> Group -> Ordering
+orderAtk = comparing _initiative
