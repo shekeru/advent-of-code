@@ -3,7 +3,7 @@ module Input where
 
 import Text.Parsec hiding (State)
 import Text.Parsec.String
-import Data.Function
+import Data.Function (on)
 
 type Mods = (String, [String])
 data Group = Group {
@@ -18,7 +18,8 @@ data Group = Group {
 } deriving (Show)
 
 instance Eq Group where
-  (==) = on (==) _initiative
+  (==) = on (==)
+    _initiative
 
 getFile :: IO [Group]
 getFile = parseFromFile (section `sepBy`

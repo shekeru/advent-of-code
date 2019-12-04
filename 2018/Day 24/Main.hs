@@ -1,7 +1,6 @@
 module Main where
 
 import Text.Printf
-import Control.Monad
 import Data.Function
 import Data.Maybe
 import Data.List
@@ -68,18 +67,17 @@ selection rets@(Offense bxs rxs) actor
 trueDmg :: Group -> Group -> Int
 trueDmg atk def
   | _attackType atk `elem` _immunities def = 0
-  | _attackType atk `elem` _weaknesses def = 2 * effdmg atk
-  | otherwise = effdmg atk
+  | _attackType atk `elem` _weaknesses def = 2 * effPwr atk
+  | otherwise = effPwr atk
 
-effdmg :: Group -> Int
-effdmg x = _attackDamage x * _units x
+effPwr :: Group -> Int
+effPwr x = _attackDamage x * _units x
 
 oTarget :: Group -> Group -> Group -> Ordering
-oTarget atk = on (flip compare)
-  (trueDmg atk) <> orderEff
+oTarget atk = on (flip compare) (trueDmg atk) <> orderEff
 
 orderEff :: Group -> Group -> Ordering
-orderEff =  on (flip compare) effdmg <> orderAtk
+orderEff =  on (flip compare) effPwr <> orderAtk
 
 orderAtk :: Group -> Group -> Ordering
 orderAtk = on (flip compare) _initiative
