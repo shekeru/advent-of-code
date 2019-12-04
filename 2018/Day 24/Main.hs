@@ -1,7 +1,6 @@
 module Main where
 
-import Debug.Trace
-
+import Text.Printf
 import Control.Monad
 import Data.Function
 import Data.Maybe
@@ -23,14 +22,24 @@ main :: IO()
 main = do
     groups <- sortBy atkOrder
       <$> Input.getFile
-    forM_ (_battles $ matched groups) $ \x ->
-      print (_units $ fst x, _units $ snd x)
+    printf "Silver: %d\n"
+      (part1 groups)
+    -- forM_ ys print
+    -- forM_ (_battles $ matched ys) $ \x ->
+    --   print (_units $ fst x, _units $ snd x)
+    -- forM_ (conduct $ matched ys) print
+
+part1 :: [Group] -> Int
+part1 = sum.map _units.head.battle where
+  battle = dropWhile fn.iterate (conduct.matched)
+  fn = (>1).length.nub.map _system
 
 conduct :: Offense -> [Group]
-conduct (Offense bxs rxs) = reverse $ foldl execute rxs bxs where
+conduct (Offense bxs rxs) = prepare $ foldl execute rxs bxs where
   execute rxs' (atk, def) = def {_units = _units def
     - div (trueDmg atk' def) (_hitPoints def)} : rxs'
     where atk' = fromMaybe atk (find (atk ==) rxs')
+  prepare = filter (\y -> _units y > 0)
 
 matched :: [Group] -> Offense
 matched groups = do
@@ -41,7 +50,7 @@ matched groups = do
 
 assign :: [Group] -> [Group] -> Offense
 assign atk def = foldl selection
-  (Offense [] def) (sortBy atkOrder atk)
+  (Offense [] def) (sortBy selOrder atk)
 
 selection :: Offense -> Group -> Offense
 selection rets@(Offense bxs []) _ = rets
@@ -51,14 +60,21 @@ selection (Offense bxs rxs) actor = let
 
 targOrder :: Group -> Group -> Group -> Ordering
 targOrder atk = on compare calc where
-  calc x = _initiative x + 40 * trueDmg atk x
+  calc x = _initiative x + 21 *
+    dmg x + 2100 * trueDmg atk x
 
 trueDmg :: Group -> Group -> Int
 trueDmg atk def
   | _attackType atk `elem` _immunities def = 0
-  | _attackType atk `elem` _weaknesses def = 2 * dmg
-  | otherwise = dmg where
-    dmg = traceShow (_units atk, _units def, _attackDamage atk * _units atk) _attackDamage atk * _units atk
+  | _attackType atk `elem` _weaknesses def = 2 * dmg atk
+  | otherwise = dmg atk
+
+dmg :: Group -> Int
+dmg x = _attackDamage x * _units x
 
 atkOrder :: Group -> Group -> Ordering
 atkOrder = on (flip compare) _initiative
+
+selOrder :: Group -> Group -> Ordering
+selOrder = on (flip compare) calc where
+  calc x = _initiative x + 21 * dmg x
