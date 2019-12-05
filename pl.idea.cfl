@@ -1,8 +1,8 @@
 `Garbage for now, might make a PL
 
 main &args ->
-  fn -> &&.lift(^.set.bind(!), ^.sort.bind(=))
-  xs -> fn.filter([136760..595730].map(^.str))
+  fn <- &&.lift(^.set.bind(!), ^.sort.bind(=))
+  xs <- fn.filter([136760..595730].map(^.str))
   xs.size.printf("Silver: %d\n")
   (^.group.map(^.size).elem(2)).filter(xs)
     .size.printf("Gold: %d\n")
@@ -13,12 +13,12 @@ Class x ->
 
 object x y z -> ;;
 
-a -> Class(0)
+a <- Class(0)
 a.add(2).printf("%d\n")
-as -> [1, 2].map(Class)
+as <- [1, 2].map(Class)
 
-b -> object(*[1, 2, 3])
-b -> object(1,2,3)
+b <- object(*[1, 2, 3])
+b <- object(1,2,3)
 b.y.printf("%d\n")
 
-bs -> [@object(1, 2)].map(^.(3))
+bs <- [@object(1, 2)].map(^.(3))
