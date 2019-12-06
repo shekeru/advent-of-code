@@ -1,8 +1,11 @@
 class Machine
   XVS = File.read('input.txt')
     .split(',').map(&:to_i)
-  def initialize()
-    @xvs, @idx = XVS.clone, 0
+  def initialize(mode = nil)
+    @cin, @cout = [], []
+    @xvs, @idx, @mode =
+      XVS.clone, 0, mode
+    @cin << @mode if @mode
   end
   def execute
     op = @xvs[@idx].to_s.rjust(4, '0').chars
@@ -22,6 +25,7 @@ class Machine
         @idx + 3 : pts(2)
     when 4
       @cout << pts(1); @idx += 2
+      return if @mode
     when 3
       inst(1) {@cin.shift}
     when 2
@@ -31,9 +35,9 @@ class Machine
     else return
   end end
   def program(*cin)
-    @cin, @cout = cin, []
-    while execute; end
-      @cout.last
+    @cin += cin
+    while execute
+      end; @cout.last
   end
   def inst(i)
     @xvs[@params[i - 1]] =
@@ -43,7 +47,20 @@ class Machine
     v = @params[i -= 1]
     @im[i] ? v : @xvs[v]
   end
+  def end?
+    99 == @xvs[@idx]
+  end
 end
-
-puts "Silver: #{Machine.new.program(1)}",
-  "Gold: #{Machine.new.program(5)}"
+# So easy, then so hard...
+puts "Silver: " + (0..4).to_a.permutation.map{
+  |xs| xs.reduce(0){|a, e|
+    Machine.new.program(e, a)
+}}.max.to_s
+# Honestly, go fuck yourself Eric
+puts "Gold: " + (5..9).to_a.permutation.map{
+  |xs| st, v, i = xs.map{|x|
+    Machine.new x}, 0, 0
+  while !st[i].end? do
+    v = st[i].program(v)
+    i = (i + 1) % 5 end
+v}.max.to_s
