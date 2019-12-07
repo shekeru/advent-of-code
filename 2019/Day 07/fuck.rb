@@ -25,7 +25,6 @@ class Machine
         @idx + 3 : pts(2)
     when 4
       @cout << pts(1); @idx += 2
-      return if @mode
     when 3
       inst(1) {@cin.shift}
     when 2
@@ -35,9 +34,9 @@ class Machine
     else return
   end end
   def program(*cin)
-    @cin += cin
-    while execute
-      end; @cout.last
+    @cin += cin; while execute
+      break if @mode && !@cout.empty?
+    end; @cout.pop
   end
   def inst(i)
     @xvs[@params[i - 1]] =
