@@ -5,7 +5,7 @@ Advent of Code is an Advent calendar of small programming puzzles for a variety 
 ## Calendar Progress
 - [ ] 2019: 08/25
 - [x] 2018: 25/25
-- [ ] 2017: 06/25
+- [ ] 2017: 07/25
 - [ ] 2016: 03/25
 - [ ] 2015: 08/25
 ## /aocg/
