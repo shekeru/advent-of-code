@@ -24,7 +24,7 @@ instance Show Pixel where
 
 main :: IO()
 main = do
-  xvs <- input $25 *6
+  xvs <- input 150
   let min = minimumBy (comparing $fn B) xvs
   printf "Silver: %d\nGold:" $on (*) (`fn` min) W T
   mapM_ print $chunksOf 25 $foldr1 (zipWith (<>)) xvs

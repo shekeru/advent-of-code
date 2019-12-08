@@ -6,7 +6,7 @@ import Data.Ord
 
 main :: IO()
 main = do
-  xvs <- input $25 *6
+  xvs <- chunksOf 150.init <$> readFile "ins.txt"
   let min = minimumBy (comparing $fn '0') xvs
   printf "Silver: %d\n" $on (*) (`fn` min) '1' '2'
   mapM_ putStrLn $chunksOf 25 $op <$>
@@ -14,7 +14,3 @@ main = do
       fn = (.)length.filter.(==)
       op '0' = ' '; op '1' = '■'
       fd '2' b = b; fd t _ = t
-
-input :: Int -> IO [String]
-input ln = chunksOf ln.init
-  <$> readFile "ins.txt"

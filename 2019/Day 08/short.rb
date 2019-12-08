@@ -1,5 +1,5 @@
 layers = File.read('ins.txt').strip
-  .chars.each_slice(6*25).to_a
+  .chars.each_slice(150).to_a
 # Part 1 Min
 mins = layers.min_by{|xs|
   xs.count{|x| '0' == x}}
