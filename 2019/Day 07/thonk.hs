@@ -36,7 +36,7 @@ eval idx tape ins = case op of
   2 -> uncurry eval (int (*)) ins
   1 -> uncurry eval (int (+)) ins
   99 -> mempty; where
-    cmp fn = int(\x y -> fromEnum $fn x y)
+    cmp = int.(fmap fromEnum.)
     jmp fn = if fn (val 1) 0 then val 2 else idx + 3
     int fn = (idx + 4, tape & ix (frc 3) .~ on fn val 1 2)
     val n = let y = frc n in if im !! (n - 1) then y else tape !!y
