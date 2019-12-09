@@ -9,4 +9,4 @@ Advent of Code is an Advent calendar of small programming puzzles for a variety 
 - [ ] 2016: 03/25
 - [ ] 2015: 08/25
 ## /aocg/
-![2019](2019.png)
+![2019](memes/2019.png)
