@@ -48,13 +48,13 @@ class Machine
     case @im[i]
     when 2; v += @rbx
       set ? v: @xvs[v]
-    when 1; v
-    when 0; set ? v: @xvs[v]
+    when 0; set ? v:
+      @xvs[v]; else; v
   end end
   def end?
     99 == @xvs[@idx]
   end
 end
-# Fucking Param Bugs
+# Fucking Parameter Bugs
 puts "Silver: #{Machine.new.program(1)}",
   "Gold: #{Machine.new(2).program}"
