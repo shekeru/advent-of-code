@@ -33,6 +33,6 @@ for Pr in Node.Graph.values():
 # Find Root
 while hasattr(Pr, 'parent'):
     Pr = Pr.parent
-# Fuck This SHit
+# Fuck This Shit
 print("Silver:", Pr.ID)
 print("Gold:", Pr.balance())
