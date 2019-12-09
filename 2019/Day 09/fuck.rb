@@ -1,5 +1,5 @@
 class Machine
-  XVS = File.read('input.txt')
+  XVS = File.read('ins.txt')
     .split(',').map(&:to_i)
   def initialize(md = nil)
     @xvs, @idx, @mode = XVS.clone, 0, md
@@ -12,6 +12,8 @@ class Machine
       op.reverse.map(&:to_i)
     @params = @xvs[@idx+1, 3]
       case op_code
+    when 9
+      @rbx += pts(1); @idx += 2
     when 8
       inst(3) {pts(1) == pts(2) ? 1:0}
     when 7
@@ -53,16 +55,6 @@ class Machine
     99 == @xvs[@idx]
   end
 end
-# So easy, then so hard...
-puts "Silver: " + (0..4).to_a.permutation.map{
-  |xs| xs.reduce(0){|a, e|
-    Machine.new.program(e, a)
-}}.max.to_s
-# Honestly, go fuck yourself Eric
-puts "Gold: " + (5..9).to_a.permutation.map{
-  |xs| st, v, i = xs.map{|x|
-    Machine.new x}, 0, 0
-  while !st[i].end? do
-    v = st[i].program(v)
-    i = (i + 1) % 5 end
-v}.max.to_s
+# Fucking Param Bugs
+puts "Silver: #{Machine.new.program(1)}",
+  "Gold: #{Machine.new(2).program}"
