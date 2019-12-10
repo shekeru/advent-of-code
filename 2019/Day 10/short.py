@@ -5,21 +5,11 @@ class Pt(list):
     def __init__(s, x, y):
         s.value = y + x * 100
         s.x, s.y = x, y
-    def __repr__(s):
-        return repr((s.x, s.y))
     def __sub__(s, pt):
         return (pt.x - s.x, pt.y - s.y)
     def laser(s, n = 200):
-        past, active = [], s.copy()
-        while active:
-            Last = -1
-            for V in active.copy():
-                Th, Dt, Ap = V
-                if Th != Last:
-                    past.append(Ap)
-                    active.remove(V)
-                    Last = Th
-        return past[n - 1]
+        ys = {k: v for k,_,v in s}
+        return ys[sorted(ys)[n-1]]
     def refresh(s):
         for pt in Pt.Field:
             if pt is not s:
@@ -28,7 +18,7 @@ class Pt(list):
     def Identify(field):
         Pt.Field = (*field,)
         for pt in Pt.Field:
-            pt += sorted(pt.refresh())
+            pt += sorted(pt.refresh(), reverse = True)
             pt.targets = len({*map(itemgetter(0), pt)})
         return max(Pt.Field, key = attrgetter('targets'))
 # Read Asteroid Grid
