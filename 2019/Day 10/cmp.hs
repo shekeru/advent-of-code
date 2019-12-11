@@ -14,17 +14,17 @@ main :: IO()
 main = do
   (pt, xvs) <- eval.pts <$> readFile "ins.txt"
   printf "Silver: %d\n" $length xvs; printf
-    "Gold: %.f\n" $fixed pt $xvs!!199
+    "Gold: %.f\n" $xvs!!199 `fixed` pt
 
-fixed :: Point -> Polar -> Float
-fixed pt (th, r) = liftA2 (+) ((*100).imagPart)
-  realPart $pt + (mkPolar r $pi -th)
+fixed :: Polar -> Point -> Float
+fixed = (+).uncurry mkPolar.swap.first negate >>>
+  fmap (liftA2 (+) ((*100).imagPart) realPart)
 
 eval :: [Point] -> (Point, [Polar])
 eval xs = maximumBy (comparing $length.snd)
   $zip xs $nubBy (on (==) fst).sort.(>>=)
    (`delete` xs) (mapM calc) <$> xs where
-  calc = (-) >>> fmap(first (pi-).swap.polar)
+  calc = (-) >>> fmap(first negate.swap.polar)
 
 pts :: String -> [Point]
 pts fs = [on (:+) fromIntegral y x
