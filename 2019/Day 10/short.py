@@ -14,7 +14,7 @@ class Pt(list):
         for pt in Pt.Field:
             if pt is not s:
                 offset = s - pt; theta = atan2(*offset)
-                yield (pi - theta, hypot(*offset), pt.value)
+                yield (-theta, hypot(*offset), pt.value)
     def Identify(field):
         Pt.Field = (*field,)
         for pt in Pt.Field:
