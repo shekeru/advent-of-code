@@ -2,13 +2,14 @@
 module Main where
 
 import Text.Printf
-import Control.Monad
-import Control.Arrow
 import Data.List.Split
-import qualified Data.Map.Strict as SM
 import Control.Applicative
 import Control.Lens.TH
+import Control.Arrow
 import Control.Lens
+import Control.Monad
+import qualified
+  Data.Map.Strict as SM
 import IntCode
 
 type Direction = Int
@@ -37,14 +38,14 @@ draw :: (Input -> Output) -> Input -> Space
 draw code xs = last st ^. tiles where
   st = chunksOf 2 ys& scanl move new
   new = Turtle 0 (0, 0) SM.empty
-  ys = xs++ map camera st& code
+  ys = xs ++map camera st& code
 nil = SM.findWithDefault 0
 
 move :: Turtle -> [Int] -> Turtle
 move st [x, y] = st' where
-  st' = st & dir %~ turn y
-    & tiles %~ paint st x
-    & coords %~ fwds st'
+  st' = st &dir %~ turn y
+    &tiles %~ paint st x
+    &coords %~ fwds st'
 
 camera :: Turtle -> Int
 camera = liftA2 nil _coords _tiles
