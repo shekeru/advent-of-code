@@ -1,10 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
+module IntCode where
+
+import Control.Lens
 import Control.Lens.TH
 import Data.List.Split
 import Data.Function
-import Control.Arrow
-import Control.Lens
-import Text.Printf
 import Data.Vector
   (Vector, fromList, (!))
 
@@ -15,16 +15,6 @@ data Program = Program {
 $(makeLenses ''Program)
 type Output = [Int]
 type Input = [Int]
-
-main :: IO()
-main = do
-  run <- eval.Program 0 0.fromList <$> input
-  run [0]
-  print $ take 100 $ [1, 0, 1, 0, 0, 0]
-
-
--- fuck :: State -> Output -> [State]
--- fuck (ll) (pt:tn:xs) =
 
 eval :: Program -> Input -> Output
 eval st@(Program i r t) ins = case op of
@@ -46,6 +36,6 @@ eval st@(Program i r t) ins = case op of
     ptr n = let y = n + i in case im!!(n - 1) of
       2 -> r + val y; 1 -> y; 0 -> val y
 
-input :: IO [Int]
-input = take 1250.(<> repeat 0).map read.
-  splitOn "," <$> readFile "ins.txt"
+input :: IO Program
+input = Program 0 0.fromList.take 1250.(<> repeat 0)
+  .map read.splitOn "," <$> readFile "ins.txt"
