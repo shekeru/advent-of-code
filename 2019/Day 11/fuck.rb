@@ -55,16 +55,20 @@ class Machine
     99 == @xvs[@idx]
   end
 end
-# Initial State
-turtle, ptr = Machine.new(true), 0
-coords, tile = [0, 0], (Hash.new 0)
-# Fuck You Eric Wastl
-loop do
-  break unless value = turtle.program(tile[coords])
-  tile[coords] = value; ptr += turtle.program >0 ? -1:1
-  case (ptr %= 4)
-    when 0; coords[1] -= 1; when 1; coords[0] += 1
-    when 2; coords[1] += 1; when 3; coords[0] -= 1
-end end
-# Fuck my Dick Off
-puts "Silver: #{tile.size}"
+# Shit Fucking Sucks
+def paint(init = true)
+  turtle, ptr = Machine.new(init), 0
+  coords, tile = [0, 0], (Hash.new 0)
+  while (value = turtle.program tile[coords]) do
+    ptr += turtle.program >0 ? -1:1
+    tile[coords.dup] = value; case (ptr %= 4)
+      when 0; coords[0] -= 1; when 1; coords[1] -= 1
+      when 2; coords[0] += 1; when 3; coords[1] += 1
+end end; tile end; plate = paint(1)
+# Fucking Autism Text
+puts "Silver: #{paint.size}"
+Y, X = plate.keys.map(&:first).uniq,
+  plate.keys.map(&:last).uniq
+Y.sort.each do |y| X.sort.each do |x|
+  putc plate[[y, x]] >0 ? '#':' '
+end; putc "\n" end
