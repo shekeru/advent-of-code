@@ -59,7 +59,7 @@ xvs.each.with_index{|v, i|
   if xvs[i, 3] == [0, 3, 0] then
     xvs[i - 17, 36] = [3] * 36
 end}; grid = Machine.new(xvs, false)
-  .program.each_slice(3).map(&:last)
+.program.each_slice(3).map(&:last)
 # Fuck You Eric Wastl
 puts "Silver: #{grid.select{|x| x == 2}.size}"
 grid.each_slice(38).each do |ln|
