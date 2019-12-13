@@ -18,7 +18,7 @@ type Input = [Int]
 main :: IO()
 main = do
   run <- eval.Program 0 0.fromList <$> input
-  let puts x = printf (x <>": %d\n").head.run
+  let puts x = printf (x <> ": %d\n").head.run
   puts "Silver" [1]; puts "Gold" [2]
 
 eval :: Program -> Input -> Output
