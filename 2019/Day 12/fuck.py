@@ -1,11 +1,11 @@
 from itertools import combinations
-import numpy as np; import math, re
+import numpy as np; import re
 # Shit Hawks Flying
 class Moon:
     def __init__(st, ln):
         xs = map(int, re.findall(r'-?\d+', ln))
-        st.position, st.velocity = \
-            map(np.array, ([*xs], [0] * 3))
+        st.velocity = np.array([0] * 3)
+        st.position = np.array((*xs,))
     def __sub__(st, pt):
         return st.position - pt.position
     def total(st):
@@ -20,7 +20,6 @@ class System:
         s.pairs, s.counter = [*combinations(s.list, 2)], 0
         s.zeroes, s.ticks = (*s.values(),), [0] * 3
     def Update(s):
-        s.counter += 1
         for st, pt in s.pairs:
             offset = [*map(lambda v: max(min(v, 1), -1), pt - st)]
             st.velocity += offset; pt.velocity -= offset
@@ -32,11 +31,11 @@ class System:
                 s.ticks[i] = s.counter
     def Solve(s, N = 1000):
         while True:
+            s.counter += 1
             value = sum(s.Update())
             if s.counter == N: yield value
             if s.counter >= N and all(s.ticks):
-                a, b, c = s.ticks; yield a * b * c \
-            // math.gcd(a, b) // math.gcd(b, c)
+                yield np.lcm.reduce(s.ticks)
     def values(s):
         return map(hash, zip(*(st.hash() for st in s.list)))
 # Fuck you Eric Wastl
