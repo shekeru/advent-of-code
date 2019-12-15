@@ -49,6 +49,12 @@ class Assembly:
             op(5, y = 1), idx+2, idx-jmp, #loop index
             op(1, y = 1), idx+2, n, idx+2,
         ], jmp)
+    def impl_putc(s, params):
+        idx = s.get_idx() + 2
+        return s.function([
+            op(9, 1), -1, # rbx--
+            op(4, 2), 1,
+        ]); return body.set_heap(heap)
     def impl_mod(s, heap, n):
         idx = s.get_idx() + 2
         body = s.function([
@@ -65,19 +71,19 @@ class Assembly:
         # Label: A
         A1 = s.impl_print("\t Line One")
         A2 = s.impl_print("\t Line Two")
-        params = s.emplace([0])
-        s.function([op(1, 1, 1), ])
-        A3 = s.impl_mod(params, 3)
+        params = s.emplace([64])
+        s.function([op(1, 2, 1, 2), 0, 2, 0])
+        A3 = s.impl_putc(params)
         # forI = s.get_idx() + 2
         # A += = s.function([
         #     op(1, 1, 1,
         # ]);
-        fA = s.impl_for(3, A1 + A2 + A3.size)
+        fA = s.impl_for(3, A1 + A2 + A3.size + 4)
         # Label: B
-        B = s.impl_print("--After--")
-        fB = s.impl_for(2, fA+B)
+        #B = s.impl_print("--After--")
+        #fB = s.impl_for(2, fA+B)
         # Label: C
-        s.impl_print("Done!")
+        #s.impl_print("Done!")
 # Dogshit.jpg
 asm = Assembly()
 asm.user_test()
