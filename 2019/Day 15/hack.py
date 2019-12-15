@@ -44,11 +44,11 @@ while Spaces:
     Node = Spaces.popleft()
     if not Pt.Update(*Node):
         continue
-    for Y in Nearby(*Node):
-        if Y not in Visited:
-            Visited[Y] = Visited[Node] + 1
-            if Pt.Update(*Y) == 1:
-                Spaces.append(Y)
+    for St in Nearby(*Node):
+        if St not in Visited:
+            Visited[St] = Visited[Node] + 1
+            if Pt.Update(*St) == 1:
+                Spaces.append(St)
 # Fuck you Eric Wastl
 print("Silver:", Visited[Start])
 print("Gold:", max(Visited.values()))
