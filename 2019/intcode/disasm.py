@@ -12,7 +12,7 @@ OP = defaultdict(lambda: ("UNK!", 0), {
     99: ("HALT", 0),
 })
 # File Input
-with open('2019/Day 15/terry.txt') as f:
+with open('2019/Day 15/alt.txt') as f:
     tape = [*map(int, f.read().split(','))]
 # Read ASM
 idx, rbx = 0, 0
@@ -28,6 +28,6 @@ while idx < len(tape):
         elif mode[i] == 2:
             STR += '[rbx + %s], ' % i
         elif mode[i] == 0:
-            STR += '{.%s, v = %s}, ' % (pr[i], tape[pr[i]])
+            STR += '{.%s, v = %s}, ' % (pr[i], tape[pr[i]] if pr[i] < len(tape) else '??')
     print(STR[:-2])
     idx += sz + 1
