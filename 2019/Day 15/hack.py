@@ -42,13 +42,10 @@ Visited, Pt = {Converter: 0}, Position()
 Start, Spaces = (21, 21), deque(Visited)
 while Spaces:
     Node = Spaces.popleft()
-    if not Pt.Update(*Node):
-        continue
     for St in Nearby(*Node):
-        if St not in Visited:
+        if St not in Visited and Pt.Update(*St):
             Visited[St] = Visited[Node] + 1
-            if Pt.Update(*St) == 1:
-                Spaces.append(St)
+            Spaces.append(St)
 # Fuck you Eric Wastl
 print("Silver:", Visited[Start])
 print("Gold:", max(Visited.values()))

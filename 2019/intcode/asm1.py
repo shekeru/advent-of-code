@@ -67,23 +67,24 @@ class Assembly:
 # User Space
     def user_test(s):
         # Label:
-        s.impl_print("--Before--")
+        s.impl_print("lol hi, ur a")
         # Label: A
-        A1 = s.impl_print("\t Line One")
-        A2 = s.impl_print("\t Line Two")
-        params = s.emplace([64])
-        s.function([op(1, 2, 1, 2), 0, 2, 0])
-        A3 = s.impl_putc(params)
+        A1 = s.impl_print("\tgay", " ")
+        A2 = s.impl_print("weeb", "")
+        # params = s.emplace([0])
+        # s.function([op(1, 1, 1), ])
+        # A3 = s.impl_mod(params, 3)
         # forI = s.get_idx() + 2
         # A += = s.function([
         #     op(1, 1, 1,
         # ]);
-        fA = s.impl_for(3, A1 + A2 + A3.size + 4)
+        fA = s.impl_for(3, A1 + A2)
         # Label: B
-        #B = s.impl_print("--After--")
-        #fB = s.impl_for(2, fA+B)
+        B = s.impl_print("\n\t\tahahahaha", "")
+        C = s.impl_print("\tahahahaha")
+        fB = s.impl_for(2, fA+B + C.size)
         # Label: C
-        #s.impl_print("Done!")
+        s.impl_print("bye bye!")
 # Dogshit.jpg
 asm = Assembly()
 asm.user_test()
