@@ -1,18 +1,17 @@
-from itertools import *
-# Functions
+# Part1 Functions
 def to_int(xs):
     return int("".join(map(str, xs)))
-base = (0, 1, 0, -1)
-def coeff(N, Idx):
-    return base[(Idx+1) // (N+1) % 4]
-def nth(arr, Y = 100):
-    for i in range(Y):
-        arr = [*fft(arr)]
-    return to_int(arr[:8])
-def fft(arr):
-    for N in range(len(arr)):
-        digit = sum(x * coeff(N, i) for i,x in enumerate(arr))
-        yield abs(digit) % 10
+def fft_a(v, i):
+    sign, s = 1, i + 1
+    j, length = i, len(v)
+    while j < len(v):
+        yield sum(v[j:j+s]) * sign
+        j += 2 * s; sign = -sign
+def part1(v, N = 100):
+    for x in range(N):
+        v = [abs(sum(fft_a(v, i))) % 10
+            for i in range(len(v))]
+    return to_int(v[:8])
 # works because offset > n/2
 def n2_fft(xs, Y = 100):
     v = (xs*10000)[to_int(xs[:7]):]
@@ -24,5 +23,5 @@ def n2_fft(xs, Y = 100):
 with open('2019/Day 16/ins.txt') as f:
     XVS = [*map(int, f.read().strip())]
 # Display
-print("Silver:", nth(XVS))
+print("Silver:", part1(XVS))
 print("Gold:", n2_fft(XVS))
