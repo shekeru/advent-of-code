@@ -17,6 +17,7 @@ class Machine
     when 8
       inst(3) {pts(1) == pts(2) ? 1:0}
     when 7
+      puts [pts(1), pts(2)]
       inst(3) {pts(1) < pts(2) ? 1:0}
     when 6
       @idx = pts(1).zero? ?
