@@ -49,6 +49,12 @@ class Assembly:
             op(5, y = 1), idx+2, idx-jmp, #loop index
             op(1, y = 1), idx+2, n, idx+2,
         ], jmp)
+    def impl_putc(s, params):
+        idx = s.get_idx() + 2
+        return s.function([
+            op(9, 1), -1, # rbx--
+            op(4, 2), 1,
+        ]); return body.set_heap(heap)
     def impl_mod(s, heap, n):
         idx = s.get_idx() + 2
         body = s.function([
