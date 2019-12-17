@@ -28,10 +28,10 @@ class Function:
         f.s, f.args = s, [*range(n+1)]
     def call(f, xs):
         if isinstance(xs[0], str):
-            xs[0] = s.get_idx() + 4 * len(xs) + 3
+            xs[0] = f.s.get_idx() + 4 * len(xs) + 3
         for i, x in enumerate(xs):
             f.s.tape += code('add', iM, iM, rX)(x, 0, i)
-        s.tape += code('jmp,0', iM, iM)(0, f.idx)
+        f.s.tape += code('jmp,0', iM, iM)(0, f.idx)
     def add(f, xs):
         locals = set()
         f.idx = f.s.get_idx()
