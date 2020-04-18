@@ -1,7 +1,7 @@
 from itertools import combinations
 from collections import deque; import heapq
 # Parsing Input
-Starts, Graph, Map, Keys = {}, {}, {}, {}; where = 'ins'
+Starts, Graph, Map, Keys = {}, {}, {}, {}; where = 't4'
 with open(f'{where}.txt') as F:
     for y, Ln in enumerate(F.read().splitlines()):
         for x, Ch in enumerate(Ln):
