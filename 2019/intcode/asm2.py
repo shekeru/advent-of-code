@@ -1,6 +1,6 @@
 def op(code, x = 0, y = 0, z = 0):
     im = "".join(map(str, [z, y, x]))
-    return im.lstrip('0') + '0' + str(code)
+    return int(im.lstrip('0') + '0' + str(code))
 # Instructions Section
 iDict, Ix, iM, rX = {
     "halt": '99',
@@ -19,13 +19,13 @@ def code(st, x = 0, y = 0, z = 0):
     im = "".join(map(str, [z, y, x]))
     op = im.lstrip('0') + '0' + iDict[st]
     def parser(*xs):
-        return [op]+[x.idx if isinstance(x,
+        return [int(op)]+[x.idx if isinstance(x,
             Function) else x for x in xs]
     return parser
 # Impl Function
 class Function:
     def __init__(f, s, n):
-        f.s, f.args = s, [*range(n+1)]
+        f.s, f.args = s, [*range(n + 1)]
     def call(f, xs):
         if isinstance(xs[0], str):
             xs[0] = f.s.get_idx() + 4 * len(xs) + 3
@@ -38,7 +38,9 @@ class Function:
         for i, x in enumerate(xs):
             if isinstance(x, str):
                 if x[0] == '$':
-                    xs[i] = xs.index(x[1:])
+                    xs[i] = f.idx + xs.index(x[1:])
+                elif x[0] == "+":
+                    xs[i] = f.idx + int(x[1:])
                 else:
                     locals.add(i)
         for i in locals:
@@ -65,6 +67,10 @@ class Assembly:
         s.tape += [*map(ord, data)]
         s.tape.append(term)
         return value
+    def var(s, value):
+        where = s.get_idx()
+        s.tape.append(value)
+        return where
 # Implementation
     def impl_add(s):
         fn = Function(s, 2)
@@ -92,7 +98,7 @@ class Assembly:
             op(7, 2, 2), b, a, idx+17,
             op(6, 1, 2), 0, jmp,
             op(1), idx+17, s.retn, s.retn,
-            op(5, 1, 1), 1, idx+8,
+            *code("jmp,1", iM, iM)(1, idx+8),
         ]; return idx
     def impl_mul(s):
         idx = s.get_idx()
@@ -102,16 +108,16 @@ class Assembly:
             op(6, 1, 2), 0, jmp,
         ]; return idx
     def impl_print(s):
-        idx = s.get_idx()
-        jmp, xs = range(2)
-        s.tape += [
-            op(1, 1, 2), 0, xs, idx + 5,
-            op(1, 0, 1, 0), 0, 0, idx+12,
-            op(6, 0, 2), idx+12, jmp,
-            op(4, 1), 0,
-            op(1, 1, 0), 1, idx + 5, idx+5,
-            op(5, 1, 1), 1, idx+4,
-        ]; return idx
+        fn = Function(s, 1)
+        jmp, xs = fn.args
+        fn.add([
+            op(1, 1, 2), 0, xs, "$ptr",
+            op(1, 0, 1, 0), "ptr", 0, "$chr",
+            op(6, 0, 2), "$chr", jmp, #exit
+            *code("out", iM)("chr"), #putc
+            op(1, 1, 0), 1, "$ptr", "$ptr", #load char
+            *code("jmp,1", iM, iM)(1, "+4"), # loop
+        ]); return fn
 # Insert Function Call
     def call_fn(s, addr, *xs):
         xs = list(xs)
@@ -125,21 +131,22 @@ asm = Assembly()
 env, vars, text = {
     'puts': asm.impl_print(),
     #'div': asm.impl_div(),
-    'sub': asm.impl_sub(),
-    'mul': asm.impl_mul(),
-    'add': asm.impl_add(),
+    #'sub': asm.impl_sub(),
+    #'mul': asm.impl_mul(),
+    #'add': asm.impl_add(),
 }, {
-    'A': 77,
-    'B': 11,
+    # 'A': asm.var(77),
+    # 'B': asm.var(11),
 }, {
-    'hello': asm.emplace("hello\n"),
-    'world': asm.emplace("world\n"),
+    1: asm.emplace("sup\n"),
+    2: asm.emplace("niggy\n"),
 } # Main Proc?
 main = asm.tape.index("mdx")
 asm.tape[main] = asm.get_idx()
 # User Space
 #asm.call_fn(env['div'], "", vars['A'], vars['B'])
-env['puts'].call("", text['hello'])
+env['puts'].call(["", text[1]])
+env['puts'].call(["", text[2]])
 # asm.call_fn(env['puts'], "", text['world']),
 # More Assembly
 asm.tape += [

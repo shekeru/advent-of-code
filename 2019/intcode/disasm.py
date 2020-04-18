@@ -12,7 +12,7 @@ OP = defaultdict(lambda: ("UNK!", 0), {
     99: ("HALT", 0),
 })
 # File Input
-with open('2019/Day 15/alt.txt') as f:
+with open('2019/intcode/ins.txt') as f:
     tape = [*map(int, f.read().split(','))]
 # Read ASM
 idx, rbx = 0, 0
