@@ -1,5 +1,5 @@
-from collections import deque; from heapq import *
-from itertools import combinations; import math
+from heapq import *; import math
+from collections import *
 # Parsing Input
 Map, Keys = {}, {}; where = 'ins'
 with open(f'{where}.txt') as F:
@@ -10,51 +10,49 @@ with open(f'{where}.txt') as F:
                     Keys[Ch] = y, x
                 Map[y, x] = Ch
 def Nearby(x, y):
-    for a, b in [(0, 1), (0, -1), (-1, 0), (1, 0)]:
-        yield x + a, y + b
+    for j in (1, -1):
+        yield x + j, y
+        yield x, y + j
 # World Class
 class World:
-    @property
-    def Position(s):
-        return Keys[s.Where]
-    # Built Ins
+    def Move(s, To, Add = 0):
+        return World(To, s.Held + To, s.Steps + Add)
+    Cache, End = defaultdict(list), len(Keys) - 1
     def __init__(s, Wh = '@', Kh = '', Ln = 0):
         s.Where, s.Held, s.Steps = Wh, Kh, Ln
+        s.Result = World.End == len(s.Held)
     def __hash__(s):
         return hash((s.Where, *sorted(s.Held)))
     def __repr__(s):
         return repr((s.Where, s.Held, s.Steps))
     def __eq__(s, obj):
-        if isinstance(obj, World):
-            return hash(s) == hash(obj)
+        return hash(s) == hash(obj)
     def __lt__(s, obj):
         return s.Steps < obj.Steps
-    # Search Functions
-    def Move(s, To, Add = 0):
-        return World(To, s.Held + To, s.Steps + Add)
-    def Search(s):
-        global i
-        Queue = deque(Visited := {s.Position: 0})
+    def GenerateBFS(s):
+        Queue = deque([(0, *(Visited := {Keys[s.Where]}), set())])
         while Queue:
-            Tile = Queue.popleft()
+            Ln, Tile, _Doors = Queue.popleft()
             for St in Nearby(*Tile):
                 if all([St not in Visited, St in Map]):
-                    if (Ch := Map[St]).isupper() and Ch.lower() not in s.Held:
-                        continue
-                    Visited[St] = Visited[Tile] + 1
-                    if Ch.islower() and Ch not in s.Held:
-                        yield (Ch, Visited[St])
-                    else:
-                        Queue.append(St)
-            i += 1
+                    Doors = _Doors.copy(); Visited.add(St)
+                    if (Ch := Map[St]).isupper():
+                        Doors.add(Ch.lower())
+                    if Ch.islower():
+                        World.Cache[s.Where]. \
+                            append((1 + Ln, Ch, Doors))
+                    Queue.append((1 + Ln, St, Doors))
+    def SearchCached(s):
+        if s.Where not in World.Cache:
+            s.GenerateBFS()
+        for Ln, Ch, DrA in World.Cache[s.Where]:
+            if not(Ch in s.Held or DrA - {*s.Held}):
+                yield (Ch, Ln)
 # This isn't even a graph anymore
-Queue = [*(Seen := {World(): 0})]
-i = 0
+Queue = list(Seen := {World(): 0})
 while Queue:
-    Opt = heappop(Queue)
-    if len(Opt.Held) == len(Keys) - 1:
-        print(Opt); break;
-    for Args in Opt.Search():
+    if (Opt := heappop(Queue)).Result:
+        print('Silver:', Opt); break
+    for Args in Opt.SearchCached():
         if (Sp := Opt.Move(*Args)).Steps < Seen.get(Sp, math.inf):
-            Seen.pop(Sp, 1); Seen[Sp] = Sp.Steps; heappush(Queue, Sp)
-print(i)
+            Seen[Sp] = Sp.Steps; heappush(Queue, Sp)
