@@ -15,8 +15,7 @@ def Nearby(x, y):
     for a, b in [(0, 1), (0, -1), (-1, 0), (1, 0)]:
         yield x + a, y + b
 # Firstpass BFS
-Seen = {(You, frozenset()): 0}
-Queue = deque(Seen)
+Queue = deque(Seen := {(You, frozenset()): 0})
 while Queue:
     Pos, Set = Queue.popleft()
     Last = Seen[Pos, Set]
