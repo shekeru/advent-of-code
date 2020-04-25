@@ -11,25 +11,21 @@ with open('ins.txt') as F:
     for y, Ln in enumerate(F.read().splitlines()):
         for x, Ch in enumerate(Ln):
             if Ch != '#':
-                if Ch.islower() or Ch == '@':
+                if Ch.islower():
                     Keys[Ch] = y, x
                 if Ch == '@':
                     for I, Crds in enumerate([(y+i, x+j) for j in (-1, 1)
                         for i in (-1, 1)], 1): Keys[str(I)] = Crds
-                    WALL = y, x
+                    Keys[Ch] = (Gold := (y, x))
                 Map[y, x] = Ch
 # World Class
 class World:
-    def Move(s, Cur, To, Add = 0):
-        return World(s.Where.replace(Cur, To),
-            s.Held + To, s.Steps + Add)
-    Cache, Mode, End = defaultdict(list), False, \
-        len([x for x in Keys if x.islower()])
     def __init__(s, Wh, Kh = '', Ln = 0):
         s.Where, s.Held, s.Steps = Wh, Kh, Ln
         s.Result = World.End == len(s.Held)
+    End = len([x for x in Keys if x.islower()])
     def __hash__(s):
-        return hash((*sorted(s.Held + s.Where),))
+        return hash((*sorted(s.Held), s.Where))
     def __repr__(s):
         return repr((s.Where, s.Held, s.Steps))
     def __eq__(s, obj):
@@ -42,13 +38,13 @@ class World:
             Ln, Tile, _Doors = Queue.popleft()
             for St in Nearby(*Tile):
                 if all([St not in Seen, St in Map]):
-                    if World.Mode and (St[0] == WALL[0] or St[1] == WALL[1]):
-                        continue
+                    if World.Mode and(St[0] == Gold[0]
+                        or St[1] == Gold[1]): continue
                     Doors = _Doors.copy(); Seen.add(St)
                     if (Ch := Map[St]).isupper():
                         Doors.add(Ch.lower())
-                    if Ch.islower():
-                        World.Cache[Loc].append((1 + Ln, Ch, Doors))
+                    if Ch.islower(): World.Cache[Loc] \
+                        .append((1 + Ln, Ch, Doors))
                     Queue.append((1 + Ln, St, Doors))
     def SearchCached(s):
         for Et in s.Where:
@@ -56,10 +52,11 @@ class World:
                 s.GenerateBFS(Et)
             for Ln, Ch, DrA in World.Cache[Et]:
                 if not(Ch in s.Held or DrA - {*s.Held}):
-                    yield s.Move(Et, Ch, Ln)
+                    yield World(s.Where.replace(Et, Ch),
+                        s.Held + Ch, s.Steps + Ln)
     def Paths(Init): 
-        World.Cache.clear()
         World.Mode = len(Init) - 1
+        World.Cache = defaultdict(list)
         Queue = list(Seen := {World(Init): 0})
         while Queue:
             if (Opt := heappop(Queue)).Result:
