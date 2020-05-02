@@ -10,6 +10,7 @@ class Machine
       op.reverse.map(&:to_i)
     @params = @xvs[@idx+1, 3]
     return if @rbx < 0
+    # puts "#{@xvs}"
     puts "op: #{op_code}, idx: #{@idx}, rbx: #{@rbx}, #{@params}"
       case op_code
     when 9
@@ -17,7 +18,6 @@ class Machine
     when 8
       inst(3) {pts(1) == pts(2) ? 1:0}
     when 7
-      puts [pts(1), pts(2)]
       inst(3) {pts(1) < pts(2) ? 1:0}
     when 6
       @idx = pts(1).zero? ?
@@ -26,7 +26,7 @@ class Machine
       @idx = pts(1).zero? ?
         @idx + 3 : pts(2)
     when 4
-      puts pts(1)
+      # puts pts(1)
       @cout << pts(1); @idx += 2
     when 3
       inst(1) {@cin.shift}

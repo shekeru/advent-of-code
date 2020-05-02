@@ -1,10 +1,5 @@
 from collections import defaultdict; import re, math
-# Read Chemicals
-Graph, Chem = {}, re.compile(r'(\d+)\s(\w+)')
-with open("2019/Day 14/ins.txt") as Fr:
-    [Ext(*World.Chem.findall(Ln)[::-1]) for Ln in Fr]
-Steps, Stage = defaultdict(set), defaultdict(list)
-# Classes don't help
+# Python sucks
 class Ext:
     def __init__(s, Yt, *Et):
         Fn = lambda x: (int(x[0]), x[1])
@@ -24,6 +19,11 @@ def Calculate(M = 1):
                 for Ct, El in St.Products:
                     local[El] += Ct * cY
     return local["ORE"]
+# Read Chemicals
+Graph, Chem = {}, re.compile(r'(\d+)\s(\w+)')
+with open("2019/Day 14/ins.txt") as Fr:
+    [Ext(*Chem.findall(Ln)[::-1]) for Ln in Fr]
+Steps, Stage = defaultdict(set), defaultdict(list)
 # Place Reaction Stages
 Graph["FUEL"].Synthesize()
 for k, v in Steps.items():
