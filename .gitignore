@@ -9,6 +9,7 @@ dist/
 .ionide/
 **/packages
 **/.paket/paket.exe
+__pycache__/
 paket-files/
 .fake
 obj/
