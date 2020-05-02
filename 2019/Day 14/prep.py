@@ -1,10 +1,10 @@
 from collections import defaultdict; import math, re
 # Read Chemicals
-Chem = re.compile(r'((\d+)\s(\w+))')
+Chem = re.compile(r'(\d+)\s(\w+)')
 with open("2019/Day 14/ins.txt") as f:
-    Graph = {Pt: (Y, xs) for (Y, Pt), *xs in [[
-        (int(N), el) for N, el in (Rt[1:] for
-    Rt in Chem.findall(ln))][::-1] for ln in f]}
+    Graph = {Pt: (Y, xs) for (Y, Pt), *xs
+        in [[(int(N), el) for N, el in
+    Chem.findall(ln)][::-1] for ln in f]}
 # Check Tree for Balance
 def Balanced(Tree):
     return all(Pt == "ORE" or
