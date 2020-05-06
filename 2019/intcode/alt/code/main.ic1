@@ -1,0 +1,4 @@
+; well fuck
+[] -> main (v)
+  + 48 5 v
+  >> v
