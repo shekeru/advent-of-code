@@ -1,4 +1,7 @@
-; shit printf
+; todo: add strings
+[] -> main ()
+  puts "whylol"
+; my shitty printf
 [ptr] -> puts (ch)
   _Loop
     + 0 ptr &v
@@ -8,6 +11,3 @@
     + 1 ptr ptr
     0j 0 _Loop
   _Exit
-; well fuck
-[] -> main ()
-  puts "testing"

@@ -1,0 +1,14 @@
+; shitty af printf
+[ptr] -> puts (ch)
+  _Loop
+    + 0 ptr &v
+    * #v 1 ch
+    0j ch _Exit
+    >> ch
+    + 1 ptr ptr
+    0j 0 _Loop
+  _Exit
+; strings need better dedup
+[] -> main ()
+  puts "futa cocks..\n"
+  puts "r hard as rocks\n"

@@ -10,7 +10,7 @@ class Machine
       op.reverse.map(&:to_i)
     @params = @xvs[@idx+1, 3]
     return if @rbx < 0
-    # puts "#{@xvs}"
+    puts "#{@xvs.take 18}"
     puts "op: #{op_code}, idx: #{@idx}, rbx: #{@rbx}, #{@params}"
       case op_code
     when 9
