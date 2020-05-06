@@ -1,4 +1,4 @@
-; well fuck
+; should print 5
 [] -> main (v)
   + 48 5 v
   >> v

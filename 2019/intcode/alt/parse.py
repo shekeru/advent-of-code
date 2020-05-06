@@ -2,16 +2,15 @@ from lark import Lark
 
 parser = Lark(r"""
     start: _NL* function+
-    function: "[" args "]" "->" fname "(" locals ")" _NL section+ _NL*
-    section: ctrl_label? asm_line*
+    function: "[" args "]" "->" fname "(" locals ")" _NL (ctrl_label | asm_line)+ _NL*
     ctrl_label: /_[A-Z]\w+/ _NL
-    ctr_ref: /_[A-Z]\w+/
+    ctrl_ref: /_[A-Z]\w+/
     mem_slot: "#" /[a-z]\w*/
     mem_ref: "&" /([a-z]\w*)/
     term: /[^\s\&\[_;]+/
     literal: NUMBER
     string: STRING
-    asm_line: term (literal | string | ctr_ref | mem_slot | mem_ref | term)+ _NL
+    asm_line: term (literal | string | ctrl_ref | mem_slot | mem_ref | term)+ _NL
     fname: NAME
     locals: NAME*
     args: NAME*
