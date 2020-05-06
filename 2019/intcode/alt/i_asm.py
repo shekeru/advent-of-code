@@ -6,53 +6,53 @@ def Generic(Code, *Args):
     Output[0] = int(Output[0])
     return Output
 
-def Position(Value):
+def AT(Value):
     return 0, Value
+REF = AT(0)
 
-def Immediate(Value):
+def VAL(Value):
     return 1, Value
+NIL = VAL(0)
 
-def Relative(Value):
+def REL(Value):
     return 2, Value
 
 ByteCode = {}
 # Construct ByteCodes
 def Add(A, B, C):
     return Generic('01', A, B, C)
-ByteCode['ADD'] = Add
+ByteCode['+'] = Add
 
 def Mul(A, B, C):
     return Generic('02', A, B, C)
-ByteCode['MUL'] = Mul
+ByteCode['*'] = Mul
 
 def In(A):
     return Generic('03', A)
-ByteCode['IN'] = In
+ByteCode['<<'] = In
 
 def Out(A):
     return Generic('04', A)
-ByteCode['OUT'] = Out
+ByteCode['>>'] = Out
 
 def JMP_True(A, B):
     return Generic('05', A, B)
-ByteCode['1_JMP'] = JMP_True
+ByteCode['1j'] = JMP_True
 
 def JMP_False(A, B):
     return Generic('06', A, B)
-ByteCode['0_JMP'] = JMP_False
+ByteCode['0j'] = JMP_False
 
 def LT(A, B, C):
     return Generic('07', A, B, C)
-ByteCode['LT'] = LT
+ByteCode['<'] = LT
 
 def EQ(A, B, C):
     return Generic('08', A, B, C)
-ByteCode['EQ'] = EQ
+ByteCode['='] = EQ
 
 def RBX(A):
     return Generic('09', A)
-ByteCode['RBX'] = RBX
 
 def Halt():
     return Generic('99')
-ByteCode['HALT'] = Halt
