@@ -38,14 +38,19 @@ for Key, Ch in [*Map.items()]:
 Queue = collections.deque(Seen := {Start: 0})
 while Queue:
     Step = Queue.popleft()
-    if Step == End:
-        print("Silver:", Seen[Step])
     for St in Nearby(*Step):
-        if St not in Map or St in Seen:
-            continue
-        if isinstance(Map[St], str):
+        if St in Map and St not in Seen:
+            if not isinstance(Map[St], str):
+                St = Map[St]
             Seen[St] = Seen[Step] + 1
             Queue.append(St)
-        else:
-            Seen[Map[St]] = Seen[Step] + 1
-            Queue.append(Map[St])
+    if Step == End:
+        print("Silver:", Seen[Step])
+        break
+# Scan Edges
+for (A, B), Ch in Map.items():
+    if not isinstance(Ch, str):
+        Map[A, B] = Ch, -1 if 2 in (A, B) \
+            or A == Y -1 or B == X -2 else 1
+# Re-BFS
+"fuck"
