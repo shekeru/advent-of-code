@@ -6,7 +6,7 @@ def Nearby(x, y):
         yield x + a, y + b
 Pairs = [(0, 1), (0, -1), (-1, 0), (1, 0)]
 # Read Intcode Tape
-with open('2019/Day 15/ins.txt') as f:
+with open('ins.txt') as f:
     Tape = [*map(int, f.read().split(','))]
 Converter = (Tape[146], Tape[153])
 # Reversed Class
