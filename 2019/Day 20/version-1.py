@@ -10,12 +10,13 @@ def Nearby(x, y):
         yield x + j, y
         yield x, y + j
 # Read to Map
-Map, List = {}, {}
+iX, Map, List = 0, {}, {}
 with open("input.txt") as Fr:
     for Y, Ln in enumerate(Fr, 1):
         for X, Ch in enumerate(Ln, 1):
             if Ch not in "# \n":
-                Map[Y,X] = Ch
+                Map[Y, X] = Ch
+            iX = max(iX, X)
 # Gated Structure
 for Key, Ch in [*Map.items()]:
     if Ch.isupper():
@@ -38,19 +39,33 @@ for Key, Ch in [*Map.items()]:
 Queue = collections.deque(Seen := {Start: 0})
 while Queue:
     Step = Queue.popleft()
+    if Step == End:
+        print("Silver:", Seen[Step]); break
     for St in Nearby(*Step):
         if St in Map and St not in Seen:
             if not isinstance(Map[St], str):
                 St = Map[St]
             Seen[St] = Seen[Step] + 1
             Queue.append(St)
-    if Step == End:
-        print("Silver:", Seen[Step])
-        break
 # Scan Edges
 for (A, B), Ch in Map.items():
     if not isinstance(Ch, str):
         Map[A, B] = Ch, -1 if 2 in (A, B) \
-            or A == Y -1 or B == X -2 else 1
+            or A > Y -4 or B > iX -4 else 1
 # Re-BFS
-"fuck"
+Queue = collections.deque(Seen := {(Start, 0): 0})
+while Queue:
+    Crds, Lv = (Cur := Queue.popleft())
+    if Cur == (End, 0):
+        print("Gold:", Seen[Cur]); break
+    for St in Nearby(*Crds):
+        if St in Map and (St, Lv) not in Seen:
+            if len(Map[St]) > 1:
+                Jmp, Delta = Map[St]
+                if Lv + Delta < 0:
+                    continue
+                Space = (Jmp, Lv + Delta)
+            else:
+                Space = St, Lv
+            Seen[Space] = Seen[Cur] + 1
+            Queue.append(Space)
