@@ -50,7 +50,8 @@ class Machine
     case @im[i]
     when 2; v += @rbx
       set ? v: @xvs[v]
-    when 0; set ? v:
+    # when 1; set ? : v;
+    when 0; set ? v : 
       @xvs[v]; else; v
   end.to_i end
   def end?
