@@ -1,7 +1,8 @@
 from lark import Lark
 
 parser = Lark(r"""
-    start: _NL* function+
+    start: _NL* (COMMENT | global | function)+
+    global: "globals" NAME NUMBER _NL
     function: "[" args "]" "->" fname "(" locals ")" _NL (ctrl_label | asm_line)+ _NL*
     ctrl_label: /_[A-Z]\w+/ _NL
     ctrl_ref: /_[A-Z]\w+/
@@ -10,7 +11,8 @@ parser = Lark(r"""
     term: /[^\s\&\[_;]+/
     literal: NUMBER
     string: STRING
-    asm_line: term (literal | string | ctrl_ref | mem_slot | mem_ref | term)+ _NL
+    asm_line: term (literal | string | ctrl_ref | mem_slot | mem_ref | result | term)+ _NL
+    result: "~" term
     fname: NAME
     locals: NAME*
     args: NAME*

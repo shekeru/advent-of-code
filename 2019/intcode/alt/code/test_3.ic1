@@ -1,6 +1,36 @@
-; todo: add strings
-[] -> main ()
-  puts "whylol"
+; i hate div
+[x y] -> div (s ch i)
+  * -1 y s
+  * 0 0 i
+  _Loop
+    < x y ch
+      1j ch _Exit
+    + s x x
+    + 1 i i
+    0j 0 _Loop
+  _Exit
+    * 1 i @
+; mod function
+[x y] -> mod (s ch)
+  * -1 y s
+  _Loop
+    < x y ch
+      1j ch _Exit
+    + s x x
+    0j 0 _Loop
+  _Exit
+    * 1 x @
+; here goes nothing
+globals BUFFER 4
+globals BUFFER2 4
+[int] -> show (digit len)
+  + BUFFER 0 &ptr
+  _Loop
+    + 1 &ptr &ptr
+    mod int 10 ~digit
+    + 48 digit #ptr
+    div int 10 ~int
+    1j int _Loop
 ; my shitty printf
 [ptr] -> puts (ch)
   _Loop
@@ -10,4 +40,18 @@
     >> ch
     + 1 ptr ptr
     0j 0 _Loop
+  _Exit
+; todo: add strings
+[] -> main (i v f3 f5 fl w)
+  puts "Code Autist: Fizz Buzz!\n"
+  _Loop
+    + 1 i i
+    < i 30 fl
+      0j fl _Exit
+    puts "Val: "
+    mod i 3 ~v
+      show i
+      puts BUFFER2
+      >> 10
+    1j 1 _Loop
   _Exit

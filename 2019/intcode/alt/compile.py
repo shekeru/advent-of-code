@@ -4,26 +4,38 @@ from i_asm import *
 
 class Statement:
     def __init__(s, fn, Op, *args):
+        s.Result = None
         s.Function, s.Op = fn, Op.children[0]
         s.Location = s.Function.Program.Index
         B_Args, s.Inc = [s.AddArg(*xs) for xs
             in enumerate(args, 1)], 1
         s.Push = s.Function.Program.PushTape
+        print(s.Op, B_Args)
         if s.Op in ByteCode:
             s.Push(ByteCode[s.Op](*B_Args))
             return
         if s.Op in s.Function.Program.Globals:
             Fn = s.Function.Program.Globals[s.Op]
-            s.CallFn(VAL(len(Fn.Args) * 4 + s.Location + 3))
+            s.CallFn(VAL(3 + len(Fn.Args) * 4 + s.Location))
             for Arg in B_Args:
-                s.CallFn(Arg)
+                if Arg:
+                    s.CallFn(Arg)
             s.Push(JMP_False(NIL, VAL(s.Op)))
+            if s.Result:
+                s.Push(Add(NIL,
+                    AT(s.Function.Program
+                    .Globals['@'].Location),
+                s.Result))
             return
         print('stmt error:', s.Op)
     def CallFn(s, X):
         s.Push(Add(NIL, X, REL(s.Inc))); s.Inc += 1
     def AddArg(s, I, A):
-        V = A.children[0].value
+        try:
+            V = A.children[0].value
+        except:
+            s.Result = s.AddArg(I, A.children[0])
+            return
         Stack = s.Function.Stack
         if A.data == 'string':
             V = eval(V)
@@ -43,6 +55,9 @@ class Statement:
             if V in Stack:
                 V = -Stack.index(V)
                 return REL(V)
+            if V in s.Function.Program.Globals:
+                Location = s.Function.Program.Globals[V].Location
+                return AT(Location)
         print('arg:', A)
 
 class Function:
@@ -82,7 +97,8 @@ class Program:
         s.PushTape(RBX(VAL('halt')))
         s.PushTape(Mul(VAL(1), AT(1), REL(1)))
         s.PushTape(JMP_False(NIL, VAL('main')))
-        s.StaticMem = []
+        s.Globals['@'] = Static(s.Index)
+        s.PushTape([0]); s.StaticMem = []
     def PushTape(s, Bytes):
         s.Tape += Bytes
         s.Index += len(Bytes)
@@ -109,4 +125,8 @@ for Node in Parse('test_3').children:
         Meta, Stmts = Node.children[:3], Node.children[3:]
         Function(p, *([Tk.value for Tk in Tr.children]
             for Tr in Meta)).Emplace(Stmts)
+    if Node.data == 'global':
+        Name, Len = [*map(lambda x: x.value, Node.children)]
+        p.Globals[Name] = Static(p.Index)
+        p.PushTape([0] * int(Len))
 p.Finish()

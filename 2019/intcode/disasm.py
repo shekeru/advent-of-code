@@ -12,7 +12,7 @@ OP = defaultdict(lambda: ("UNK!", 0), {
     99: ("HALT", 0),
 })
 # File Input
-with open('2019/intcode/ins.txt') as f:
+with open('ins.txt') as f:
     tape = [*map(int, f.read().split(','))]
 # Read ASM
 idx, rbx = 0, 0
@@ -26,7 +26,7 @@ while idx < len(tape):
         if mode[i] == 1:
             STR += 'i(.%s, v = %s), ' % (idx+i+1, pr[i])
         elif mode[i] == 2:
-            STR += '[rbx + %s], ' % i
+            STR += '[rbx + %s], ' % pr[i]
         elif mode[i] == 0:
             STR += '{.%s, v = %s}, ' % (pr[i], tape[pr[i]] if pr[i] < len(tape) else '??')
     print(STR[:-2])
