@@ -1,12 +1,15 @@
-(proc puts (ptr) (ch)
-(loop
+(bytes txt "hello\n")
+(bytes retn 1)
+
+(defn puts (ptr) (ch)
   (+ 0 ptr &ref)
+(loop
   (+ 0 ^ref ch)
-    (0j ch break)
+    (0j ch ~break)
   (putc ch)
-  (+ 1 ptr ptr)
+  (+ 1 &ref &ref)
 ))
 
-(proc main () ()
-  (puts "hello\n")
+(defn main () ()
+  (puts !txt)
 )
