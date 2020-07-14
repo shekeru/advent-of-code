@@ -1,0 +1,12 @@
+(proc puts (ptr) (ch)
+(loop
+  (+ 0 ptr &ref)
+  (+ 0 ^ref ch)
+    (0j ch break)
+  (putc ch)
+  (+ 1 ptr ptr)
+))
+
+(proc main () ()
+  (puts "hello\n")
+)

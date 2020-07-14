@@ -60,18 +60,20 @@ def Read(Arg):
 Pre, Halt = [
     "rbx, !halt",
     "mul, !halt, 1, *1",
-    "0_jmp, 0, !main"
+    "0_jmp, 0, !main",
+    "-global, 1, retn",
 ], [
     "-global, 0, halt", "halt"
 ]
 
-S_Mem, Script = [
+S_Mem = [
     "-global, 0, txt",
-        b"shieeeet\0"
-], [
-    *Fn_Puts,
-    # mod
-    *Fn_Main
-    # modcall?
-]; Pr = ProcessArray([*Pre, *S_Mem, *Script, *Halt])
+        b"Fizz Buzz Generator:\n\0",
+    "-global, 0, fizz",
+        b"Fizz\0",
+    "-global, 4, rBuffer",
+    "-global, 4, lBuffer",
+]
+Pr = ProcessArray([*Pre, *S_Mem, *Script, *Halt])
+print(*[*Pre, *S_Mem, *Script, *Halt], sep="\n")
 print(Pr)
