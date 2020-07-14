@@ -28,6 +28,10 @@ class Function:
         if Label:
             s.Bytecode.append(f"-global, 0, {s.Name + Label}")
         s.Bytecode += [*map(s.Alt, Data)]
+    def AddIf(s, Data):
+        s.LoopCtr += 1; s.Bytecode += [
+            f"0_jmp, 0, !{s.Name}_cond_{s.LoopCtr}", *Data,
+            f"-global, 0, {s.Name}_cond_{s.LoopCtr}",]
     def AddLoop(s, Data):
         s.LoopCtr += 1; s.Bytecode += [
           f"-global, 0, {s.Name}_loop_{s.LoopCtr}",
@@ -53,6 +57,19 @@ class Function:
 # Functions, Variables, Locals
 Main = Function("main", [], [])
 Puts = Function("puts", ["ptr"], ["ch"])
+Mod = Function("mod", ["x", "y"], ["s", "ch"])
+# Declare Mod
+Mod += [
+    "mul, -1, >y, >s"
+]
+Mod.AddLoop([
+    "lt, >x, >y, >ch",
+        "1_jmp, >ch, ~break",
+    "add, >s, >x, >x",
+])
+Mod += [
+    "mul, 1, >x, $retn"
+]
 # Declare Puts
 Puts.AddLoop([
         "add, 0, >ptr, ^2",
@@ -63,6 +80,17 @@ Puts.AddLoop([
 ])
 # Declare Main
 Main += Puts.Call(["!txt"])
+Main += [
+    *Mod.Call([6, 3]),
+    "add, 48, $retn, $retn",
+    "cout, $retn",
+    # "eq, 0, $retn, $retn"
+]
+# Main.AddIf(Puts.Call(["!fizz"]))
 # Generate Functions
-Fn_Puts = Puts.Generate()
-Fn_Main = Main.Generate()
+Script = [
+    *Mod.Generate(),
+    *Puts.Generate(),
+    *Main.Generate()
+]
+Script
