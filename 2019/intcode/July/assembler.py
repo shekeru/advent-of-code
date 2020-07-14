@@ -76,7 +76,5 @@ Pre, Post = [
     "mul, !halt, 1, *1",
     "0_jmp, 0, !main",
 ], [
-    "-global, 1, cmp",
-    "-global, 1, retn",
     "-global, 0, halt",
 "halt"]

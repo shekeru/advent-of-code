@@ -7,7 +7,8 @@ class Lexer(LexerGenerator):
         sl.add('OPEN', r'\(')
         sl.add('CLOSE', r'\)')
         # Compiler Terms
-        sl.add("PROC", r'proc')
+        sl.add("BYTES", r'bytes')
+        sl.add("DEFN", r'defn')
         sl.add("LOOP", r'loop')
         sl.add("REF", r'&\w+')
         sl.add("PTR", r'\^\w+')
@@ -18,10 +19,13 @@ class Lexer(LexerGenerator):
         sl.add("COUT", r'putc')
         sl.add("1_JMP", r'1j')
         sl.add("0_JMP", r'0j')
+        sl.add("LT", r'<')
+        sl.add("EQ", r'=')
         # Numbers & Vars
         sl.add("STRING", r'".*"')
-        sl.add('NUMBER', r'\d+')
-        sl.add('TERM', r'\w+')
+        sl.add('NUMBER', r'-?\d+')
+        sl.add('GLOBAL', r'[\$!]\w+')
+        sl.add('TERM', r'~?\w+')
         # Ignore spaces
         sl.ignore('\s+')
 ll = Lexer().build()
@@ -47,3 +51,6 @@ def Open(fn):
     while List:
         Read(Tree, List)
     return Tree
+
+ss = open(f"code/ex1.ic").read()
+Tree, List = [], [*ll.lex(ss)]
