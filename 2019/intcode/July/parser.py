@@ -26,9 +26,17 @@ class Function:
     def StartLoop(s):
         s.LoopCtr += 1
         return [f"-global, 0, {s.Name}_loop_{s.LoopCtr}"]
-    def EndLoop(s, Array):
-        return [f"0_jmp, 0, !{s.Name}_loop_{s.LoopCtr}",
-        f"-global, 0, {s.Name}_break_{s.LoopCtr}"]
+    def EndLoop(s, Array, Which):
+        return [f"0_jmp, 0, !{s.Name}_loop_{Which}",
+        f"-global, 0, {s.Name}_break_{Which}"]
+    def StartIf(s, Ref):
+        return [f"0_jmp, {Ref}, !{s.Name}_start_else_{s.LoopCtr}"]
+    def SkipElse(s, Ref):
+        return [f"1_jmp, 1, !{s.Name}_end_else_{s.LoopCtr}"]
+    def StartElse(s, Which):
+        return[f"-global, 0, {s.Name}_start_else_{Which}"]
+    def EndElse(s, Which):
+        return[f"-global, 0, {s.Name}_end_else_{Which}"]
     def __iadd__(s, Data):
         s.Assembly += Data
         return s
@@ -44,18 +52,51 @@ def Resolve(Arg, Fn):
 
 def Dispatch(Terms, Fn):
     Op, *Args = Terms
+    if Op.name == "IF":
+        Array = []
+        Cond, Body, Else = Args
+        Array += Fn.StartIf(Resolve(Cond, Fn))
+        CurCtr = Fn.LoopCtr
+        for Inner in Body:
+            Array += Dispatch(Inner, Fn)
+        Array += Fn.SkipElse(CurCtr)
+        Array += Fn.StartElse(CurCtr)
+        for Inner in Else:
+            Array += Dispatch(Inner, Fn)   
+        Array += Fn.EndElse(CurCtr)
+        return Array
     if Op.name == "LOOP":
         Array = []
         Array += Fn.StartLoop()
+        CurCtr = Fn.LoopCtr
         for Inner in Args:
             Array += Dispatch(Inner, Fn)
         Array = [x.replace("~break",
-            f"!{Fn.Name}_break_{Fn.LoopCtr}") for x in Array]
-        Array += Fn.EndLoop(Array)
+            f"!{Fn.Name}_break_{CurCtr}") for x in Array]
+        Array += Fn.EndLoop(Array, CurCtr)
         return Array
+    Res = [Resolve(x, Fn) for x in Args]
     if Op.name == "TERM":
-        return FnDict[Op.value].Call \
-            ([Resolve(x, Fn) for x in Args])
+        return FnDict[Op.value].Call(Res)
+    if Op.name == "SUB":
+        A, B, C = Res
+        if Args[1].name == "NUMBER":
+            return [f"add, {A}, -{B}, {C}"]
+        return [f"mul, -1, {B}, $_rx1",
+            f"add, $_rx1, {A}, {C}"]
+    if Op.name == "LMUL":
+        A, B = Res
+        return [f"mul, {A}, {B}, {A}"]
+    if Op.name == "LSUB":
+        A, B = Res
+        if Args[1].name == "NUMBER":
+            return [f"add, {A}, -{B}, {A}"]
+    if Op.name == "LADD":
+        A, B = Res
+        return [f"add, {A}, {B}, {A}"]
+    if Op.name == "MOVE":
+        A, B = Res
+        return [f"mul, {A}, 1, {B}"]
     return [", ".join([Op.name, *[Resolve \
         (x, Fn) for x in Args]])]
 
@@ -82,12 +123,7 @@ for List in Array:
         Fn += Fn.End()
         S_Mem += Fn.Assembly
 
-S_Mem
-
 Assembly = [*Pre, *S_Mem, *Post]
 Pr = ProcessArray(Assembly)
 with open("..\ins.txt", 'w') as F:
     F.write(Pr)
-
-for Ln in Assembly:
-    print(Ln)

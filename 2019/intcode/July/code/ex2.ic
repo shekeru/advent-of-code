@@ -1,5 +1,3 @@
-(bytes nl "\n")
-(bytes txt "Project Euler 1: ")
 (bytes ret 1)
 
 (defn div (x y) (cp)
@@ -50,23 +48,21 @@
 ) (mv !sBuff $ret)
 )
 
-(defn main [] (i sum cf)
+(bytes FB "FizzBuzz\n")
+(bytes F "Fizz\n")
+(bytes B "Buzz\n")
+
+(defn main () (a b c i)
   (mv 0 i) (mv 0 sum)
 (loop
   (+= i 1)
-  (< i 10 cf)
-    (0j cf ~break)
-  (mod i 3) (mv $ret cf)
-  (mod i 5) (*= cf $ret)
-    (= 0 cf cf)
-  (if cf [
-    (+= sum i)
-  ] [
-    (show i)
-    (puts $ret)
-    (puts !nl)
-  ])
-) (puts !txt)
-  (show sum)
+  (< i 100 c)
+    (0j c ~break)
+  (mod i 3) (mv $ret a)
+  (mod i 5) (mv $ret b)
+  (+ a b c) (= 0 c c)
+  (if c)
+
+) (show sum)
   (puts $ret)
 )
