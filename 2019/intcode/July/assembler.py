@@ -72,9 +72,10 @@ def Read(Arg):
     return Immediate(int(Arg))
 # Utility Shit
 Pre, Post = [
-    "rbx, !halt",
-    "mul, !halt, 1, *1",
+    "rbx, !_halt",
+    "mul, !_halt, 1, *1",
     "0_jmp, 0, !main",
 ], [
-    "-global, 0, halt",
+    "-global, 1, _rx1",
+    "-global, 0, _halt",
 "halt"]
