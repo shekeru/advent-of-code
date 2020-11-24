@@ -43,7 +43,8 @@ main = do
   -- writeFile "what.txt" $ show world
 
 solve :: [Tile] -> World  -> Int
-solve ts = length.SM.filter (`elem` ts).fst
+solve ts (w, (ys, xs)) = length $flip SM.filterWithKey
+  w$ \(y, x) v -> v `elem` ts && y >= minimum ys
 
 flows :: Stack -> World -> World
 flows (x:xs) wh = wh& flows xs.spill down
@@ -51,8 +52,8 @@ flows (x:xs) wh = wh& flows xs.spill down
 flows [] wh = wh
 
 spill :: Stack -> World -> World
-spill (x:xs) wh = settle level wh& spill xs.if fst x > 0 then
-  flows $map (&ix 0 -~ 1) level else id where level = expand x wh
+spill (x:xs) wh = settle level wh& spill xs.flows
+  (level <&> (&ix 0 -~ 1)) where level = expand x wh
 spill [] wh = wh
 
 waterify :: Stack -> World -> World
