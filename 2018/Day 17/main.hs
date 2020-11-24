@@ -18,7 +18,6 @@ type Coords = (Int, Int)
 data Tile = Water | Stable | Clay deriving (Eq)
 type World = (SM.Map Coords Tile, ([Int], [Int]))
 
-
 instance {-# OVERLAPS #-} Show World where
   show (dict, (ys, xs)) = intercalate "\n" $ chunksOf
     (length xs) $do y <- ys; x <- xs; show $ dict ^. at (y, x)
@@ -41,7 +40,7 @@ main = do
   world <- parse "input.txt" <&> flows source
   solve [Water, Stable] world& printf "Silver: %d\n"
   solve [Stable] world& printf "Gold: %d\n"
-  writeFile "what.txt" $ show world
+  -- writeFile "what.txt" $ show world
 
 solve :: [Tile] -> World  -> Int
 solve ts = length.SM.filter (`elem` ts).fst
@@ -76,11 +75,6 @@ sflow :: Coords -> World -> Int -> Stack
 sflow (y, x) m@(w, b) dt = if (w ^.at(y + 1, x) &solid) && not
   (w ^.at(y, x) &solid) then (y, x) :sflow (y, x - dt) m dt else [(y, x)]
 
-solid :: Maybe Tile -> Bool
-solid (Just Water) = False
-solid Nothing = False
-solid _ = True
-
 parse :: String -> IO World
 parse = readFile <&> (bounded.foldl expand SM.empty.map
   (head &&& map read.matches.(*=~ [re|@{%int}|])).lines <$>) where
@@ -88,3 +82,8 @@ parse = readFile <&> (bounded.foldl expand SM.empty.map
       dict [a..b] where fn 'y' v = (k, v); fn 'x' v = (v, k)
     bounded = id &&& (fn *** fn).unzip.SM.keys
       where fn = range.(minimum &&& maximum)
+
+solid :: Maybe Tile -> Bool
+solid (Just Water) = False
+solid Nothing = False
+solid _ = True
