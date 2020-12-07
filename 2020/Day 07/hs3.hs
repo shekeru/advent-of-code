@@ -1,13 +1,13 @@
-{-# LANGUAGE PartialTypeSignatures, LambdaCase #-}
+{-# LANGUAGE PartialTypeSignatures, LambdaCase, TupleSections #-}
 module Main where
 
-import Text.Printf
-import Control.Monad
+import Text.Printf (printf)
+import Control.Monad (guard)
 import qualified Data.Map.Strict as SM
 import Text.Parsec hiding (State)
+import Data.Function ((&))
 import Text.Parsec.String
-import Data.Function
-import Data.List
+import Data.List (nub)
 
 type Entry = (String, Int)
 type Pair = (String, [Entry])
@@ -34,19 +34,7 @@ getFile = parseFromFile (many stmnt) "input.txt" >>= \case
   Right inst -> pure $SM.fromList inst
 
 stmnt :: Parser Pair
-stmnt = do
-    key <- chew $string " bag"
-    value <- many $digit !!! inner
-    chew endOfLine >> pure (key, value)
-
-inner :: Parser Entry
-inner = do
-  i <- read <$> many1 digit
-  w <- chew $string " bag"
-  pure (tail w, i)
-
-(!!!) :: Parser end -> Parser w -> Parser w
-(!!!) cmp p = try $chew (lookAhead cmp) *> p
-
-chew :: Parser end -> Parser String
-chew = manyTill (noneOf "\n").try
+stmnt = let color = chew $string " bag" in do
+    key <- color; value <- (<* chew endOfLine) $many $read <$> ((*>) =<<
+      try.chew.lookAhead) (many1 digit) >>= \i -> color >>= pure.(, i).tail
+    pure (key, value) where chew = manyTill (noneOf "\n").try
