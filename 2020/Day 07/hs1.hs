@@ -37,17 +37,14 @@ getFile = parseFromFile (many stmnt) "input.txt" >>= \case
 stmnt :: Parser Pair
 stmnt = do
     key <- chew $string " bag"
-    value <- many $digit !!! inner
+    value <- many $seek digit $do
+        i <- read <$> many1 digit
+        w <- chew $string " bag"
+        pure (tail w, i)
     chew endOfLine >> pure (key, value)
 
-inner :: Parser Entry
-inner = do
-  i <- read <$> many1 digit
-  w <- chew $string " bag"
-  pure (tail w, i)
-
-(!!!) :: Parser end -> Parser w -> Parser w
-(!!!) cmp p = try $chew (lookAhead cmp) *> p
+seek :: Parser end -> Parser w -> Parser w
+seek = (*>).try.chew.lookAhead
 
 chew :: Parser end -> Parser String
 chew = manyTill (noneOf "\n").try

@@ -35,6 +35,6 @@ getFile = parseFromFile (many stmnt) "input.txt" >>= \case
 
 stmnt :: Parser Pair
 stmnt = let color = chew $string " bag" in do
-    key <- color; value <- (<* chew endOfLine) $many $read <$> ((*>) =<<
-      try.chew.lookAhead) (many1 digit) >>= \i -> color >>= pure.(, i).tail
+    key <- color; value <- (<* chew endOfLine) $many $read <$> (try.chew.
+      lookAhead >>= (*>)) (many1 digit) >>= \i -> color >>= pure.(, i).tail
     pure (key, value) where chew = manyTill (noneOf "\n").try
