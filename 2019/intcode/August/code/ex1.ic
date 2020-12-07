@@ -1,0 +1,8 @@
+set! txt ("hello world\n")
+set! ptrA 0
+set! ptrB 1
+putc txt
+
+$def main () {
+  putc txt
+}

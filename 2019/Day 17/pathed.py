@@ -1,6 +1,7 @@
+import re
 # Read Map
 Path = {}
-with open("path.txt") as F:
+with open("2019/Day 17/path.txt") as F:
     for Y, Ln in enumerate(F, 1):
         for X, Ch in enumerate(Ln, 1):
             if Ch == "#":
@@ -15,8 +16,26 @@ def Nearby(x, y):
             yield x + j, y
         else:
             yield x, y + j
+def AdjustFace(dX, dY):
+    global Face
+    if Face < 2:
+        if dX + dY > 0:
+            Face += 1
+            S = "R"
+        else:
+            Face -= 1
+            S = "L"
+    else:
+        if dX+dY > 0:
+            Face -= 1
+            S = "L"
+        else:
+            Face += 1
+            S = "R"
+    Face %= 4
+    return S
 def Valid(x, y):
-    global Face, You
+    global You
     X, Y = [pr for pr in Nearby(x, y) if
         pr in Path and pr not in Past][0]
     F, dX, dY = 1, X - x, Y - y
@@ -29,23 +48,12 @@ def Valid(x, y):
             F -= 1
             Past.pop()
             break
-    # Facings
-    if Face < 2:
-        if dX + dY > 0:
-            Face += 1
-            S = "R"
-        else:
-            Face -= 1
-            S = "L"
-    else:
-        if dX+dY > 0:
-            S = "L"
-            Face -= 1
-        else:
-            Face += 1
-            S = "R"
-    Face %= 4
     You = (x + dX * F, y + dY * F)
-    print(S+",%s" %F)
+    S = AdjustFace(dX, dY)
+    return S+",%s," %F
+Turns = ""
 while You != (11, 55):
-    Valid(*You)
+    Turns += Valid(*You)
+Sephi = re.compile(r'^(.{1,21})\1*(.{1,21})(?:\1|\2)*(.{1,21})(?:\1|\2|\3)*$')
+for G in Sephi.match(Turns).groups():
+    print(G)
