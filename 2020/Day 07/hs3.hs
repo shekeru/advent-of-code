@@ -6,6 +6,7 @@ import Control.Monad
 import qualified Data.Map.Strict as SM
 import Text.Parsec hiding (State)
 import Text.Parsec.String
+import Data.Function
 import Data.List
 
 type Entry = (String, Int)
@@ -14,13 +15,13 @@ type Tree = SM.Map String [Entry]
 
 main :: IO ()
 main = do
-  graph <- getFile; printf "Silver: %d\nGold: %d\n"
-    (length (filter (silver graph) $SM.keys graph) - 1)
-    (gold graph "shiny gold")
+  graph <- getFile; let fn x = x graph "shiny gold"
+  printf "Silver: %d\n" $silver &length.nub.fn
+  printf "Gold: %d\n" $fn gold
 
-silver :: Tree -> String -> Bool
-silver xs "shiny gold" = True
-silver xs wh = any (silver xs.fst) $xs SM.! wh
+silver :: Tree -> String -> [String]
+silver xs wh = (`SM.foldMapWithKey` xs)$ \k v ->
+  guard (elem wh $map fst v) >> k : silver xs k
 
 gold :: Tree -> String -> Int
 gold xs wh = sum $do
