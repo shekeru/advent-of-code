@@ -6,6 +6,7 @@ import Control.Lens
 import Text.Printf
 import Data.Either
 import Data.Maybe
+import Data.List
 
 type Tape = V.Vector (String, Int)
 type Active = (Int, Int, S.Set Int)
@@ -33,5 +34,5 @@ eval xs = do
       put (acc', idx', S.insert idx seen) >> eval xs
 
 input :: IO Tape
-input = V.fromList.map (fn.words).lines <$> readFile "input.txt" where
-  gn ('+': xs) = read xs; gn v = read v; fn [c, v] = (c, gn v)
+input = V.fromList.map (fn.words).lines <$> readFile
+  "input.txt" where fn [c, v] = (c, read $delete '+' v)

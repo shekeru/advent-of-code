@@ -5,14 +5,17 @@ import Control.Lens.At
 import Control.Lens
 import Text.Printf
 import Data.Maybe
+import Data.List
+import Data.Char
 
 data State = State {
   _acc :: Int, _idx :: Int,
   _past :: S.Set Int
 } deriving (Show)
-data OpCode v = Acc v | Jmp v | Nop v
-  deriving (Show, Eq); makeLenses ''State
 type Tape = V.Vector (OpCode Int)
+data OpCode v = Acc v | Jmp v | Nop v
+  deriving (Show, Eq, Read)
+makeLenses ''State
 
 main :: IO ()
 main = do
@@ -36,6 +39,5 @@ eval xs st = if _idx st' >= V.length xs then (- _acc st') else
       Jmp v -> st &idx +~ v - 1; Acc v -> st &acc +~ v; Nop _ -> st
 
 input :: IO Tape
-input = V.fromList.map (fn.words).lines <$> readFile "input.txt" where
-  gn ('+': xs) = read xs; gn v = read v; fn ["acc", v] = Acc $ gn v
-  fn ["jmp", v] = Jmp $ gn v; fn ["nop", v] = Nop $ gn v
+input = V.fromList.map fn.lines <$> readFile "input.txt" 
+  where fn (x:xs) = read$ toUpper x : delete '+' xs
