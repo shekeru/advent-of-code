@@ -1,21 +1,18 @@
-Tape = [[X, int(C)] for LN in
+Input = [[X, int(C)] for LN in
     open("2020/Day 08/input.txt")
 for X, C in [LN.split()]]
 # Simulation
 def Eval(Tape):
     Acc = Ix = 0; Seen = set()
     while Ix < len(Tape):
-        X, C = Tape[Ix]
-        if X == "acc":
-            Acc += C
-        elif X == "jmp":
-            Ix += C - 1
-        Ix += 1
-        # Break if Repeating
-        if Ix not in Seen:
-            Seen.add(Ix)
-        else:
+        if Ix in Seen:
             return Acc, False
+        X, C = Tape[Ix]; Seen.add(Ix)
+        if X == "jmp":
+            Ix += C - 1
+        elif X == "acc":
+            Acc += C
+        Ix += 1
     return Acc, True
 # Correction
 def Unhalt(Tape):
@@ -29,6 +26,6 @@ def Unhalt(Tape):
         yield Eval(Tape)
         Tape[Ix][0] = X
 # Results
-print("Silver:", Eval(Tape)[0])
+print("Silver:", Eval(Input)[0])
 print("Gold:", next(filter(lambda opt:
-    opt[1], Unhalt(Tape)))[0])
+    opt[1], Unhalt(Input)))[0])
