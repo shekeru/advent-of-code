@@ -3,7 +3,7 @@ Arr = [*map(int, open('2020/Day 09/input.txt'))]
 # Efficientish Search
 def Weakness(V):
     for Y in range(2, len(Arr)):
-        for A in range(1 + len(Arr) - Y):
+        for A in range(Arr.index(V)):
             if sum(S := Arr[A:A+Y]) == V:
                 return min(S) + max(S)
             elif sum(S) > V:
