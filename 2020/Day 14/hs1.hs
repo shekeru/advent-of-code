@@ -10,9 +10,8 @@ type Section = (Mask, [Write])
 type Write = (Int, Int)
 
 main :: IO ()
-main = do
-  series <- fmap (sum.SM.elems.SM.fromList).(>>=).reverse <$> input
-  on (printf "Silver: %d\nGold: %d\n") series silver gold
+main = fmap (sum.SM.elems.SM.fromList).(>>=).reverse <$> input
+  >>= \f -> on (printf "Silver: %d\nGold: %d\n") f silver gold
 
 silver :: Section -> [Write]
 silver (mask, xs) = foldl fn [] xs where
