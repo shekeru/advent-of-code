@@ -17,11 +17,10 @@ class Silver(Shared):
 # Part Two
 class Gold(Shared):
     def __setitem__(mem, k, v):
-        Real = list(bin(k)[2:].rjust(36, '0'))
-        for I in (Ix := [I for I, F in enumerate(mem.mask) if F == 'X']):
-            Real[I] = '0'
-        for I in [I for I, F in enumerate(mem.mask) if F == '1']:
-            Real[I] = '1'
+        B = int(mem.mask.replace('X', '0'), 2)
+        Ix = [I for I, F in enumerate(mem.mask) if F == 'X']
+        Real = ['0' if I in Ix else F for I, F in enumerate \
+            (list(bin(k | B)[2:].rjust(36, '0')))]
         for L in range(len(Ix)+1):
             for Bits in itertools.combinations(Ix, L):
                 Key = Real.copy()
