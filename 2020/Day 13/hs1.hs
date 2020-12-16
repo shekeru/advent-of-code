@@ -6,10 +6,9 @@ import Data.List.Split
 import Data.List
 
 main :: IO ()
-main = do
-  input >>= liftM2 (>>)
-    (printf "Silver: %d\n".uncurry silver.second (map snd))
-    (printf "Gold: %d\n".fst.foldl gold (0, 1).snd)
+main = input >>= liftM2 (>>)
+  (printf "Silver: %d\n".uncurry silver.second (map snd))
+  (printf "Gold: %d\n".fst.foldl gold (0, 1).snd)
 
 silver :: Int -> [Int] -> Int
 silver n = uncurry (*).minimumBy
