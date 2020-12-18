@@ -1,50 +1,41 @@
 import re, operator
-# Operators
-Forms = {
+# How much cock could a cuckold cuck, if a cuckold could cuck cock?
+Forms, Lines = {
     '+': operator.add,
     '*': operator.mul,
-}
-# Tokenizer
+}, [*open("Day 18/input.txt")]
+# Niggerlicious Lexer 6000000
 def GetTokens(Ln):
     while Ln:
-        for Ptn, Fn in [('\d+', int), ('.', str)]:
-            V = re.match('(?:\s*)('+ Ptn +')(?:\s*)', Ln)
-            if V:
-                yield Fn(V.group(1))
-                Ln = Ln[V.end():]
-# Silver Models
-def Silver(Line):
-    return ExprS([*GetTokens(Line)])
-
-def ExprS(Tokens):
-    Value = Factor(Tokens, ExprS)
-    while Tokens and Tokens[0] in Forms:
-        Value = Forms[Tokens.pop(0)](Value, Factor(Tokens, ExprS))
-    return Value
-
-def Factor(Tokens, Function):
-    if Tokens[0] != "(":
-        return Tokens.pop(0)
-    Tokens.pop(0)
-    Value = Function(Tokens)
-    Tokens.pop(0)
-    return Value
-# Gold Models
-def Gold(Line):
-    return ExprG([*GetTokens(Line)])
-
-def ExprG(Tokens):
-    Value = TermG(Tokens)
-    while Tokens and Tokens[0] == "*":
-        Value = Forms[Tokens.pop(0)](Value, TermG(Tokens))
-    return Value
-
-def TermG(Tokens):
-    Value = Factor(Tokens, ExprG)
-    while Tokens and Tokens[0] == "+":
-        Value = Forms[Tokens.pop(0)](Value, Factor(Tokens, ExprG))
-    return Value
+        for Ptn, Fn in [('\d+', int), ('[+*()]', str)]:
+            if (V := re.match('(?:\s*)('+ Ptn +')(?:\s*)', Ln)):
+                yield Fn(V.group(1)); Ln = Ln[V.end():]
+# Part 1 Structure
+class Silver(list):
+    def Expr(Tokens):
+        Value = Tokens.Factor()
+        while Tokens and Tokens[0] in Forms:
+            Value = Forms[Tokens.pop(0)](Value, Tokens.Factor())
+        return Value
+    def Factor(Tokens):
+        if Tokens[0] != "(":
+            return Tokens.pop(0)
+        Tokens.pop(0)
+        Value = Tokens.Expr()
+        Tokens.pop(0)
+        return Value
+# Part 2 Structure
+class Gold(Silver):
+    def Expr(Tokens):
+        Value = Tokens.Term()
+        while Tokens and Tokens[0] == "*":
+            Value = Forms[Tokens.pop(0)](Value, Tokens.Term())
+        return Value
+    def Term(Tokens):
+        Value = Tokens.Factor()
+        while Tokens and Tokens[0] == "+":
+            Value = Forms[Tokens.pop(0)](Value, Tokens.Factor())
+        return Value
 # Results
-Lines = [*open("Day 18/input.txt")]
-print("Silver:", sum(map(Silver, Lines)))
-print("Gold:", sum(map(Gold, Lines)))
+Eval = lambda Ty: sum(Ty(GetTokens(X)).Expr() for X in Lines)
+print("Silver:", Eval(Silver), "\nGold:", Eval(Gold))
