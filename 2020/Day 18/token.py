@@ -18,9 +18,9 @@ class Silver(list):
             Value = Forms[Tokens.pop(0)](Value, Tokens.Factor())
         return Value
     def Factor(Tokens):
-        if Tokens[0] != "(":
-            return Tokens.pop(0)
-        Tokens.pop(0)
+        Value = Tokens.pop(0)
+        if Value != "(":
+            return Value
         Value = Tokens.Expr()
         Tokens.pop(0)
         return Value
