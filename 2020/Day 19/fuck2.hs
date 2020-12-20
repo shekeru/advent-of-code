@@ -1,6 +1,7 @@
 {-# LANGUAGE ViewPatterns, BlockArguments #-}
 
 import Text.Printf; import Data.Function
+import Data.Functor; import Control.Monad
 import qualified Data.Map.Strict as SM
 import Data.List.Split
 
@@ -11,9 +12,9 @@ main = do
   on (printf "Silver: %d\nGold: %d\n") generate silver $foldr (\(k, v) ->
     SM.insert k $words v) silver [(8, "42 | 42 8"), (11, "42 31 | 42 11 31")]
 
-mkTree :: Header -> Int -> Rule; type Rule = (String -> [String])
-mkTree graph ((SM.!) graph -> xs) | elem '"' (head xs) = basic | otherwise = \str ->
-  map (mkTree graph.read) <$> splitOn ["|"] xs >>= foldl (flip concatMap) [str]
+mkTree :: Header -> Int -> Rule; type Rule = String -> [String]
+mkTree graph ((SM.!) graph -> xs) | elem '"' (head xs) = basic
+  | otherwise = (map (mkTree graph.read) <$> splitOn ["|"] xs >>=).foldM (&)
     where basic (c:str) | c == (head.read.head) xs = [str]; basic _ = []
 
 readF :: String -> IO (Header, [String]); type Header = SM.Map Int [String]
