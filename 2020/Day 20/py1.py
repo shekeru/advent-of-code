@@ -1,29 +1,26 @@
-import itertools, collections, math, queue, re
-Basic, Side = lambda X: [X, flipX(X), flipY(X), rotateL(X), rotateR(X),
-    rotateL(rotateL(X)), rotateL(flipX(X)), rotateL(flipY(X))
-], lambda V, X: [L[X] for L in V]; Monster = [
+import itertools, collections, math, queue
+Images, Monster, Bounds = [], [
     "                  # ",
     "#    ##    ##    ###",
     " #  #  #  #  #  #   ",
-] # Functions
-rotateR = lambda V: [*zip(*V[::-1])]
-rotateL = lambda V: [*zip(*V)][::-1]
-flipX = lambda V: [L[::-1] for L in V]
-flipY = lambda V: V[::-1]
-# Import Data
-Tile = {int(Hd.split()[1][:-1]): Basic([*map(tuple, Ln)]) for (Hd, *Ln) in
+], int(math.sqrt(len(Tile)))
+# Prepare Tile Array
+def Translate(X):
+    for _ in range(4):
+        yield (X := [*zip(*X)][::-1])
+        yield X[::-1]
+Tile = {int(Hd.split()[1][:-1]): [*Translate([*map(tuple, Ln)])] for (Hd, *Ln) in
     (x.strip().split('\n') for x in open('Day 20/input.txt').read().split('\n\n'))}
-BorderRemove = lambda V: [x[1:-1] for x in V[1:-1]]
-Images, Bounds = [], int(math.sqrt(len(Tile)))
+B_Strip, Fs = lambda V: [x[1:-1] for x in V[1:-1]], lambda V, X: [L[X] for L in V]
 # Functions for Graph
 def CheckConnect(A, B):
     if A[-1] == B[0]:
         return 0, -1
     if A[0] == B[-1]:
         return 0, 1
-    if Side(A, -1) == Side(B, 0):
+    if Fs(A, -1) == Fs(B, 0):
         return -1, 0
-    if Side(A, 0) == Side(B, -1):
+    if Fs(A, 0) == Fs(B, -1):
         return 1, 0
 def GetDelta(A, B):
     if (T := CheckConnect(A, B)):
@@ -50,7 +47,7 @@ def GenMAP(Initial):
         for Ki_2 in (Fn := Graph[Ki_1]):
             if (Pt_ := Fn[Ki_2](*Pt)):
                 if Pt_ not in Seen:
-                    V = (Rt + 1, Pt_, Ki_2)
+                    V = (1 + Rt, Pt_, Ki_2)
                     Seen[Pt_] = Ki_2
                     Next.put(V)
     return Seen
@@ -61,7 +58,7 @@ for Ki in (Corners := {Ki for Ki in sorted(Graph) if len({*Graph[Ki].items()}) =
             Current = [""] * 8
             for X in range(Bounds):
                 ID, Spin = V[X, Y]
-                for Ix, Ln in enumerate(BorderRemove(Tile[ID][Spin])):
+                for Ix, Ln in enumerate(B_Strip(Tile[ID][Spin])):
                     Current[Ix] += "".join(Ln)
             Flat_Image += Current
         Images.append(Flat_Image)
@@ -75,7 +72,7 @@ def SearchHere(Data, MP):
             yield Start
     return []
 def SearchLoop(Data, Total = 0):
-    Aids = sum(L.count("#") for L in Data)
+    Base = sum(L.count("#") for L in Data)
     for L in range(len(Data) - 3):
         Prev = set()
         for I in range(3):
@@ -88,7 +85,7 @@ def SearchLoop(Data, Total = 0):
                 break
         else:
             Total += len(Prev)
-    return (Aids - Total * 15) if Total else 0
+    return (Base - Total * 15) if Total else 0
 # Just Kill Me
 print("Silver:", math.prod({K for K, I in Corners}))
 print("Gold:", sum(SearchLoop(X) for X in Images))
