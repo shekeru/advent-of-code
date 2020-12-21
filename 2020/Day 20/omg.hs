@@ -1,6 +1,7 @@
 {-# LANGUAGE PartialTypeSignatures, ViewPatterns, FlexibleInstances, TupleSections, BlockArguments #-}
 
 import Data.Function
+import Control.Arrow
 import Control.Monad
 import qualified Data.Map.Strict as SM
 import Data.List.Split
@@ -45,15 +46,17 @@ check a b
     if y > 0 then Just (x, y-1) else Nothing
   | otherwise = Nothing
 
-readF :: String -> IO [Tile]
-readF wh = concatMap fn.splitOn [""].lines <$> readFile wh where
-  fn ((init.last.words -> idx):body) = (read idx,) <$> spin body
+readF :: String -> IO (Int, Edges)
+readF wh = (floor.sqrt.fromIntegral.length &&& perms.concatMap fn).splitOn [""].lines <$>
+  readFile wh where fn ((init.last.words -> idx):body) = (read idx,) <$> spin body
 
 main :: IO ()
 main = do
-  edges <- perms <$> readF "input.txt"
+  (limit, edges) <- readF "input.txt"
+  print $length edges
+  print [g | g <- group $map fst $SM.keys edges]
   -- let yeet = map (\(a, b, c) -> b) edges
-  print edges
+  -- print edges
   -- print $product [head g | g <- group $map fst yeet, length g == 8]
   -- print $map (\(a, b, c) -> (fst b, fst c)) edges
   -- print $length edges
