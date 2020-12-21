@@ -7,8 +7,8 @@ Images, Monster, Bounds = [], [
 # Prepare Tile Array
 def Translate(X):
     for _ in range(4):
-        yield (X := [*zip(*X)][::-1])
-        yield X[::-1]
+        yield (X := [*zip(*X)])
+        yield (X := X[::-1])
 Tile = {int(Hd.split()[1][:-1]): [*Translate([*map(tuple, Ln)])] for (Hd, *Ln) in
     (x.strip().split('\n') for x in open('Day 20/input.txt').read().split('\n\n'))}
 B_Strip, Fs = lambda V: [x[1:-1] for x in V[1:-1]], lambda V, X: [L[X] for L in V]
@@ -28,8 +28,7 @@ def GetDelta(A, B):
             X, Y = X + X0, Y + Y0
             if 0 <= X < Bounds and 0 <= Y < Bounds:
                 return X, Y
-        X0, Y0 = T
-        return Modify
+        X0, Y0 = T; return Modify
 # Find Connections
 Graph = collections.defaultdict(dict)
 for K1, K2 in itertools.permutations(Tile, 2):
