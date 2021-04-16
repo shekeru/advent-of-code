@@ -100,7 +100,7 @@ def Dispatch(Terms, Fn):
     return [", ".join([Op.name, *[Resolve \
         (x, Fn) for x in Args]])]
 
-Array = Open("ex1")
+Array = Open("ex2")
 for List in Array:
     Head = List[0]
     # Allocate Global Memory
