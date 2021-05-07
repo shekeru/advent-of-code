@@ -1,7 +1,7 @@
 import itertools, operator, functools
 # Problem Functions
 def Solve(V, N = 5):
-    Next_To = [Opt for Pt in V for Opt in Nearby(Pt)]
+    Next_To = {Opt for Pt in V for Opt in Nearby(Pt)}
     Births = filter(lambda Pt: 3 == Factor(Pt, V), Next_To)
     Deaths = filter(lambda Pt: Factor(Pt, V) not in (2, 3), V)
     V = V - {*Deaths} | {*Births}; return Solve(V, N - 1) if N else len(V)
