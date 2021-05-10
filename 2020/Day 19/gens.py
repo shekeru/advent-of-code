@@ -1,5 +1,5 @@
 Match = lambda Str: int(max([*Check(Str, 0), 0]) == len(Str))
-Ctx, Lines = {}, [L.strip() for L in open("Day 19/input.txt")]
+Ctx, Lines = {}, [L.strip() for L in open("input.txt")]
 Header, Body = Lines[:(S := Lines.index(''))], Lines[1+ S:]
 # Giving Head is Fun
 for Ln in Header:
@@ -15,8 +15,9 @@ for Ln in Header:
 # Recursive Chad Function
 def Check(String, Idx = 0):
     if isinstance(Ctx[Idx], str):
-        yield from [1] if len(String) > 0 and \
-            String[0] == Ctx[Idx] else []; return
+        if len(String) > 0 and String[0] == Ctx[Idx]:
+            yield 1
+        return
     for Opts in Ctx[Idx]:
         Potential = [0]
         for Part in Opts:
