@@ -18,7 +18,7 @@ def Match(String):
 # Recursive Checks
 def Check(String, Idx = 0):
     if isinstance(Ctx[Idx], str):
-        return {1} if len(String) > 0 and String[0] == Ctx[Idx] else {}
+        return {1} if String[:1] == Ctx[Idx] else {}
     Seen = set()
     for Opts in Ctx[Idx]:
         Potential = {0}

@@ -15,7 +15,7 @@ for Ln in Header:
 # Recursive Chad Function
 def Check(String, Idx = 0):
     if isinstance(Ctx[Idx], str):
-        if len(String) > 0 and String[0] == Ctx[Idx]:
+        if String[:1] == Ctx[Idx]:
             yield 1
         return
     for Opts in Ctx[Idx]:
