@@ -17,7 +17,7 @@ class Effect:
         s.Turns -= 1
         return s.Turns
     def EndEffect(s):
-        pass
+        s.Effects.remove(s)
 # Children
 class Missile(Effect):
     def __init__(s, World):
@@ -83,7 +83,6 @@ class World:
             return
         for Eff in (*s.Effects,):
             if not Eff.StartTurn():
-                s.Effects.remove(Eff)
                 Eff.EndEffect()
         if s.Boss.HP <= 0:
             World.Least = min(World.Least, s.Spent)
