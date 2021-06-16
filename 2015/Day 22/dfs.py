@@ -75,7 +75,7 @@ class World:
         return "\n".join(map(repr, [s.Player, s.Boss, s.Effects]))
     def CastOptions(s):
         Active = [type(x) for x in s.Effects]
-        return [Spell for Spell in (Recharge, Poison, Shield, Drain, Missile)
+        return [Spell for Spell in (Recharge, Poison, Shield, Missile, Drain)
             if Spell not in Active and Spell.Cost <= s.Player.Mana]
     def ExecuteTurns(s, Delta = 0):
         if s.Cast:
