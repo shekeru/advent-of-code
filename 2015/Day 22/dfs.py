@@ -35,6 +35,7 @@ class Shield(Effect):
         super().__init__(s.Cost, World, 6)
         s.Player.Armor += 7
     def EndEffect(s):
+        super().EndEffect()
         s.Player.Armor -= 7
     Cost = 113
 class Poison(Effect):
@@ -85,12 +86,11 @@ class World:
             if not Eff.StartTurn():
                 Eff.EndEffect()
         if s.Boss.HP <= 0:
-            World.Least = min(World.Least, s.Spent)
-            return print(World.Least)
+            World.Least = s.Spent; return
         if s.Cast:
             for Opt in s.CastOptions():
                 Opt(Alt := copy.deepcopy(s))
-                if Alt.Boss.HP > 0 and Alt.Spent < World.Least:
+                if Alt.Spent < World.Least:
                     Alt.Cast = not s.Cast
                     Alt.ExecuteTurns(Delta)
         else:
