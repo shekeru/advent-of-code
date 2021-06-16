@@ -1,23 +1,21 @@
-import copy
+import copy, queue, dataclasses
 # Spell Class
 class Effect:
     def __repr__(s):
         return f"{s.__class__.__name__}: {s.Turns} Turns"
     def __init__(s, Cost, World, Turns = 0):
-        World.Casts.append(s.__class__.__name__)
+        s.Boss, s.Turns = World.Boss, Turns
         s.Effects = World.Effects
         s.Player = World.Player
-        s.Boss = World.Boss
         if Turns:
-            s.Effects.append(s)
+            s.Effects[type(s)] = s
         s.Player.Mana -= s.Cost
         World.Spent += Cost
-        s.Turns = Turns
     def StartTurn(s):
         s.Turns -= 1
         return s.Turns
     def EndEffect(s):
-        s.Effects.remove(s)
+        del s.Effects[type(s)]
 # Children
 class Missile(Effect):
     def __init__(s, World):
@@ -53,57 +51,60 @@ class Recharge(Effect):
         return super().StartTurn()
     Cost = 229
 # Entities
+@dataclasses.dataclass
 class Player:
-    def __init__(s, HP, Mana):
-        s.HP, s.Mana = HP, Mana
-        s.Armor = 0
     def __repr__(s):
         return f"[Player] HP: {s.HP}, Mana: {s.Mana}, Armor: {s.Armor}"
-
+    HP: int; Mana: int; Armor: int = 0
+@dataclasses.dataclass
 class Boss:
-    def __init__(s, HP, Damage):
-        s.HP, s.Damage = HP, Damage
     def __repr__(s):
         return f"[Boss] HP: {s.HP}, Damage: {s.Damage}"
+    HP: int; Damage: int
+Spells = Effect.__subclasses__()
 # Compact State
 class World:
     def __init__(s, Player, Boss):
-        s.Casts, s.Effects = [], []
+        s.Cast, s.Spent, s.Effects = True, 0, {}
         s.Player, s.Boss = Player, Boss
-        s.Cast, s.Spent = True, 0
     def __repr__(s):
         return "\n".join(map(repr, [s.Player, s.Boss, s.Effects]))
+    def __lt__(s, o):
+        return s.Boss.HP * s.Spent < o.Boss.HP * o.Spent
     def CastOptions(s):
-        Active = [type(x) for x in s.Effects]
-        return [Spell for Spell in (Recharge, Poison, Shield, Missile, Drain)
-            if Spell not in Active and Spell.Cost <= s.Player.Mana]
-    def ExecuteTurns(s, Delta = 0):
+        return filter(lambda x: x not in s.Effects
+            and x.Cost <= s.Player.Mana, Spells)
+    def ExecuteTurn(s, Delta = 0):
+        Copies = []
         if s.Cast:
             s.Player.HP -= Delta
         if s.Player.HP <= 0:
-            return
-        for Eff in (*s.Effects,):
-            if not Eff.StartTurn():
-                Eff.EndEffect()
+            return Copies
+        for Active in (*s.Effects.values(),):
+            if not Active.StartTurn():
+                Active.EndEffect()
         if s.Boss.HP <= 0:
-            World.Least = s.Spent; return
+            World.Least = s.Spent
+            return s.Spent
         if s.Cast:
             for Opt in s.CastOptions():
                 Opt(Alt := copy.deepcopy(s))
                 if Alt.Spent < World.Least:
                     Alt.Cast = not s.Cast
-                    Alt.ExecuteTurns(Delta)
+                    Copies.append(Alt)
         else:
             s.Player.HP -= max(1, s.Boss.Damage -
                 s.Player.Armor); s.Cast = not s.Cast
-            s.ExecuteTurns(Delta)
-# Outside Logic
-Ex1_P, Ex1_B = Player(50, 500), Boss(71, 10)
-
-World.Least = 2500
-World(Ex1_P, Ex1_B).ExecuteTurns()
-print("Silver:", World.Least)
-
-World.Least = 5000
-World(Ex1_P, Ex1_B).ExecuteTurns(1)
-print("Gold:", World.Least)
+            if s.Player.HP > 0:
+                Copies.append(s)
+        return Copies
+# A* Like Search
+def A_Search(Delta = 0):
+    World.Least, Q = 5000, queue.PriorityQueue()
+    Q.put(World(Player(50, 500), Boss(71, 10)))
+    while isinstance(Value := Q.get().ExecuteTurn
+        (Delta), list): [*map(Q.put, Value)]
+    return Value
+# Run Problem
+print("Silver:", A_Search())
+print("Gold:", A_Search(1))
