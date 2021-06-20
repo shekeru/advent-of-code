@@ -11,12 +11,35 @@ Deltas, World = {
     'se': lambda x, y: (x, y + 1),
     'nw': lambda x, y: (x, y - 1),
 }, collections.defaultdict(int)
-# Part One
+# Functions
+def Adjacent(*Coords):
+    return (C := [Fn(*Coords) for Fn in Deltas.values()]), sum(World[Alt] for Alt in C)
+def StepForwards(N):
+    global World
+    for _ in range(N):
+        Next = collections.defaultdict(int)
+        for Key, Value in (*World.items(),):
+            # Remove the Whites
+            if not Value:
+                continue
+            # Count the Blacks
+            Nearby, Count = Adjacent(*Key)
+            # Flip the Blacks
+            if Count in (1, 2):
+                Next[Key] = 1
+            # Flip the Whites
+            for Opt in Nearby:
+                _, Count = Adjacent(*Opt)
+                if Count == 2:
+                    Next[Opt] = 1
+        World = Next
+    return sum(World.values())
+# Init Tiles
 for Current in Flips:
     Pt = 0, 0
     for I in Current:
         Pt = Deltas[I](*Pt)
     World[Pt] ^= 1
-# Display
-print("Silver:", sum(1 for v
-    in World.values() if v))
+# Printing
+print("Silver:", StepForwards(0))
+print("Gold:", StepForwards(100))
