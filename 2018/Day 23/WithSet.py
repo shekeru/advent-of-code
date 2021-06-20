@@ -1,6 +1,6 @@
 import re, math
 # List of Coordinates
-with open('2018/Day 23/input.txt') as File:
+with open('2018/Day 23/ex2.txt') as File:
     System = [*map(lambda Ln: tuple(map(int,
         re.findall(r'-?\d+', Ln))), File)]
 # Distance Function
@@ -13,7 +13,7 @@ Limit, Values, Largest = math.inf, set(), \
 for Pt in System:
     if (Dist := Manhattan(Pt)) > Pt[3]:
         Values.add(Dist - Pt[3])
-    Limit = min(Limit, Dist + Pt[3])
+    Limit = min(Limit, Dist + Pt[3] + 1)
 # Print Results
 print("Silver:", sum(1 for Pt in System if
     Manhattan(Largest, Pt) <= Largest[3]))
