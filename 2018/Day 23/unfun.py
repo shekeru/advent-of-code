@@ -1,21 +1,21 @@
 import re, math
-with open('2018/Day 23/input.txt') as f:
-    parse = lambda x: [*map(int, re.findall(r'-?\d+', x))]
-    sys = [*map(parse, f.readlines())]
-st = max(sys, key = lambda pt: pt[3])
-def m_dist(xs, ys):
-    solve = lambda x, y: abs(y - x)
-    return sum(solve(*pts) for pts in zip(xs[:3], ys[:3]))
-amnt = [pts for pts in sys if m_dist(st, pts) <= st[3]]
+# List of Coordinates
+with open('2018/Day 23/input.txt') as File:
+    System = [*map(lambda Ln: tuple(map(int,
+        re.findall(r'-?\d+', Ln))), File)]
+# Distance Function
+def Manhattan(Xs, Ys = (0, 0, 0)):
+    Fn = lambda x, y: abs(y - x); return sum \
+        (Fn(*Pair) for Pair in zip(Xs[:3], Ys))
 # Fucking Part 2 Garbage
-def solved():
-    values, limit = set(), math.inf
-    for ys in sys:
-        dist = m_dist(3*[0], ys)
-        if dist > ys[3]:
-            values.add(dist - ys[3])
-        limit = min(limit, dist + ys[3])
-    return max(x for x in values if x < limit)
-# Printing
-print("Silver:", len(amnt))
-print("Gold:", solved())
+Limit, Values, Largest = math.inf, set(), \
+    max(System, key = lambda Pt: Pt[3])
+for Pt in System:
+    if (Dist := Manhattan((0, 0, 0), Pt)) > Pt[3]:
+        Limit = min(Limit, Dist + Pt[3])
+        Values.add(Dist - Pt[3])
+# Print Results
+print("Silver:", sum(1 for Pt in System if
+    Manhattan(Largest, Pt) <= Largest[3]))
+print("Gold:", max(Pt for Pt in
+    Values if Pt < Limit))
