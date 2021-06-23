@@ -8,7 +8,7 @@ def Nearby(x, y):
 # Load Maze File
 Map, Keys = {}, {}
 with open('ins.txt') as F:
-    for y, Ln in enumerate(F.read().splitlines()):
+    for y, Ln in enumerate(F.read().split()):
         for x, Ch in enumerate(Ln):
             if Ch != '#':
                 if Ch.islower():
@@ -43,8 +43,8 @@ class World:
                     Doors = _Doors.copy(); Seen.add(St)
                     if (Ch := Map[St]).isupper():
                         Doors.add(Ch.lower())
-                    if Ch.islower(): World.Cache[Loc] \
-                        .append((1 + Ln, Ch, Doors))
+                    elif Ch.islower():
+                        World.Cache[Loc].append((1 + Ln, Ch, Doors))
                     Queue.append((1 + Ln, St, Doors))
     def SearchCached(s):
         for Et in s.Where:
@@ -54,7 +54,7 @@ class World:
                 if not(Ch in s.Held or DrA - {*s.Held}):
                     yield World(s.Where.replace(Et, Ch),
                         s.Held + Ch, s.Steps + Ln)
-    def Paths(Init): 
+    def Paths(Init):
         World.Mode = len(Init) - 1
         World.Cache = defaultdict(list)
         Queue = list(Seen := {World(Init): 0})
