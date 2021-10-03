@@ -25,7 +25,7 @@ isNice str = and $ [three, twice, nice] <*> [str] where
   nice = all (`notElem` ["ab", "cd", "pq", "xy"]).pair
   three = (>= 3).length.filter isVowel
   twice = any ((>= 2).length).group
-
+-- Helper Functions
 isVowel :: Char -> Bool
 isVowel = flip elem "aeiou"
 
