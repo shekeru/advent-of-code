@@ -73,7 +73,7 @@ class World < Hash
       @image[x, y] = self[y+1, x+1].color
     end end; @image.save("debug.bmp", :bmp)
   end
-  # Fuck Nested Arrays
+  # Indexing By Coords
   def []=(y, x, v)
     self.store([y,x], v)
   end
