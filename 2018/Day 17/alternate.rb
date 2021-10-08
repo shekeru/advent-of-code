@@ -70,7 +70,7 @@ class System < Hash
     while head = @stack.shift do
       next unless last = head.flow
         while last = last.spill do end
-    end; render # Aids-donkey looping
+    end; render # this loop was a mistake
   end
   # Display Image
   def render(z = nil)
@@ -80,7 +80,7 @@ class System < Hash
         = tile.color(tile == z) if tile
     end end; image.save('debug.bmp', :bmp)
   end
-  # Fuck Nested Arrays
+  # Indexing By Coords
   def []=(y, x, v)
     self.store([y,x], v)
   end
